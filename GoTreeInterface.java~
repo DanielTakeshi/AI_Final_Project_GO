@@ -1,7 +1,0 @@
-public interface GoTreeInterface {
-    public GoTree (int inputNodeNum, int hiddenNodeNum, int outputNodeNum, double mew);
-    public GoTree (File inFile);
-    public void train (int[] input, int outcome);
-    public double genMove (int[] input);
-    public void toFile (File outFile);
-}
