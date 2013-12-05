@@ -1,6 +1,7 @@
 import structure5.Vector;
-import java.util.Random;
 import java.io.*;
+import java.util.*;
+
 /*
  * A Feed Forward Tree -- designed for playing Go -- simon chase
  *
@@ -31,15 +32,101 @@ public class GoTree implements GoTreeInterface {
     double outputError;
     
     public GoTree () {
-
     }
 
     public void toFile (File outFile) {
+	// write the FFTree out to file
+	try {
+	    PrintWriter writer = new PrintWriter(outFile);
+	    writer.println(inputNum + "," + hiddenNum + "," + mew);
 
+	    writer.println("%");
+	
+	    Double[] tempArray;
+
+	    // write out all hidden weight arrays as 
+	    // (hidden array 0) input_0, input_1, ..., input_k
+	    // (hidden array 1) input_0, input_1, ..., input_k
+	    // ...
+	    // (hidden array j) input_0, input_1, ... ...
+
+	    for (int i = 0; i < hiddenNum; i++) {
+		tempArray = hiddenWeight.get(i);
+
+		writer.print(tempArray[0]);
+		for (int p = 1; p < inputNum; p++) {
+		    writer.print("," + tempArray[p]);
+		}
+		writer.print("\n");
+	    }
+	
+	    // end of hidden weights section
+	    writer.println("%");
+	
+	    // write out the output weight array as 
+	    // (single output array) hidden_0, hidden_1, ..., hidden_k
+	
+	    writer.print(outputWeight[0]);
+
+	    for (int i = 1; i < hiddenNum; i++) {
+		writer.print("," + outputWeight[i]);
+	    }
+	    writer.print("\n");
+	    writer.flush();
+	    writer.close();
+	} catch (Exception e) {
+
+	}
     }
 
     public void buildTree (File inFile) {
+	// build the tree from a file where we have saved the tree
 
+	try {
+	    Scanner scanny = new Scanner(inFile);
+	    
+	    // read in the first line -- has the input number, hidden num, and the learning rate in the first line
+	    String[] firstLine = scanny.nextLine().split(",");
+
+	    inputNum = Integer.parseInt(firstLine[0]);
+	    hiddenNum = Integer.parseInt(firstLine[1]);
+	    mew = Double.parseDouble(firstLine[2]);
+	    
+	    // initialize value and error structs
+	    hiddenOutput = new Double[hiddenNum];
+	    hiddenError = new Double[hiddenNum];
+	    hiddenWeight = new Vector<Double[]>();
+
+	    outputWeight = new Double[hiddenNum];
+
+	    scanny.nextLine();
+ 
+	    // read in the lines for each hidden node weight array
+	    for (int i = 0; i < hiddenNum; i++) {
+		String[] hiddenWeightLine = scanny.nextLine().split(",");
+		Double[] hiddenWeightArray = new Double[hiddenWeightLine.length];
+		
+		for (int p = 0; p < hiddenWeightLine.length; p++) {
+		    hiddenWeightArray[p] = Double.parseDouble(hiddenWeightLine[p]);
+		}
+
+		// store weight array into double weight vector
+		hiddenWeight.add(i, hiddenWeightArray);
+	    }
+	    
+	    scanny.nextLine();
+
+	    // read output weight array into outputWeightArray;
+	    outputWeight = new Double[hiddenNum];
+	    String[] outputWeightLine = scanny.nextLine().split(",");
+
+	    for (int i = 0; i < hiddenNum; i++) {
+		outputWeight[i] = Double.parseDouble(outputWeightLine[i]);
+	    }
+	    // done
+	} catch (IOException e) {
+	    
+	}
     }
 
     public void buildTree (int inputIn, int hiddenIn, double mewIn) {
@@ -180,5 +267,13 @@ public class GoTree implements GoTreeInterface {
     public double genMove (int[] input) {
 	this.propagateForward (input);
 	return outputValue;
+    }
+
+    public static void main(String[] args) {
+	GoTree myGo = new GoTree();
+	myGo.buildTree(new File("hi.txt"));
+	System.out.println("hi");
+	
+	myGo.toFile(new File("hi2.txt"));
     }
 }
