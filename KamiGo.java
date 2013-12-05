@@ -27,75 +27,52 @@ Within each of those two steps, we have to do the following (might not be in com
 
 There are a lot of command line inputs, due to the different ways to run an ANN.
 
-COMMAND LINE INPUTS: use "name=val" for the value corresponding to
-some command name. Do not include the quotations.
+COMMAND LINE INPUTS:
 
-$ java KamiGo <data> <tn> <lr> <ni> <nh> <var>
+$ java KamiGo <data> <train> <iterations>
 
-Here are the values for each:
+1. <data> is a text file that has the list of games in a way our ANN can read it
+2. <train> should be either "y" or "n" -- if no, use old ANN, if yes then train one and use that.
+3. <iterations> is how many times we run backpropagation (stopping criteria). OPTIONAL parameter
 
-1. data (list of SFG games) = "file_name.txt"
-2. tn (train net) = {"y", "n"}
-3. lr (learning rate), default is 0.05
-4. ni (number iterations), default is 100 (recommended more)
-5. nh (number hidden nodes), default is 10
-6. var (variance weights), default is 0.05
+Num of hidden nodes is set to a constant, and default weights are ~Unif[-0.5, 0.5].
 
 */
 
-// import java.util.*;
-// import java.io.*;
 
 public class KamiGo {
 	public static void main(String[] args) {
 
-		test.hi();
-
-		// First need to check if the parameters are correct
-		if (args.length != 7) {
-			System.err.println("USAGE: java KamiGo <data.txt> <tn> <lr> <ni> <nh> <var>");
+		// STEP 0: Checks if args.length = 2 or 3; if train=y, we NEED third argument.
+		if ((args.length != 2 && args.length != 3) || (args[1].equals("y") && args.length == 2)) {
+			System.err.println("USAGE: java KamiGo <data> <train> <iterations> (need \"iterations\" if \"train\" = \"y\")");
 			System.exit(1);
 		}
-		// Parse the input (define a method to help us?)
-		String file_name;
-		boolean train_net = false;
-		double learning_rate;
 		int num_iterations;
-		int num_hidden_nodes;
-		double variance_weights; // Can use Java's nextGaussian if needed
-		parse_data();
+		boolean do_we_train = args[1].equals("y");
+		if (do_we_train) {
+			try {
+				num_iterations = Integer.parseInt(args[2]);
+			} catch (NumberFormatException e) {
+				System.err.println("Argument " + args[2] +  " must be an integer");
+				System.exit(1);
+			}
+		}
 		
-		// BACKPROPAGATION
+		// STEP 1: BACKPROPAGATION
 		// Call Simon's code and store the info so we can use it later!!
-		if (train_net) {
-			// Call Simon's code with args list as input
+		if (do_we_train) {
+			System.out.println("Call backpropagation code.");
 		} else {
-			// Use a default neural network, generated randomly
+			System.out.println("Find our old neural network (assuming we have it...)");
 		}
 
-		// PLAY THE GAME!
+		// STEP 2: PLAY THE GAME!
 		play_game();
 	}
 
 	// Plays the game!
-	public static void play_game() {}
-
-	// Helps us parse the input if needed
-	public static void parse_data() {}
-
+	public static void play_game() {
+		System.out.println("We are playing the game!");
+	}
 }
-
-
-/*
-// Code to change a string argument to a string
-
-int firstArg;
-if (args.length > 0) {
-    try {
-        firstArg = Integer.parseInt(args[0]);
-    } catch (NumberFormatException e) {
-        System.err.println("Argument" + " must be an integer");
-        System.exit(1);
-    }
-}
-*/
