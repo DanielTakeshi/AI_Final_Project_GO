@@ -17,6 +17,30 @@ public class InputGenerator {
     public static final int[][] locations = { {0,-2}, {-1,-1}, {0,-1}, {1,-1}, {-2,0}, {-1,0}, 
 					      {1,0}, {2,0}, {-1,1}, {0,1}, {1,1}, {0,2},};
 
+    public InputGenerator() {
+    }
+
+    // This is the method we want to use. Takes an array of board
+    // positions and a desired move, and generates an input array.
+    // Currently it only handles the first point, 2 spaces above the
+    // given point.
+    public static int[] getInput(String[][] board, int[] move, int move_count) {
+		int[][] position_array = getPositionArray(move);
+		int[] input = processPoint(board, position_array);
+		// Early Game		
+		if (move_count <= 10) { input[36] = 1; }
+		// Mid Game
+		else if (move_count <= 40) { input[37] = 1; }
+		// Late Game
+		else { input[38] = 1; }
+		// On Corner
+		if ( move[0] % 6 <= 3 && move[1] % 6 <=3) { input[39] = 1; }
+		// On Edge
+		else if ( move[0] % 6 <= 3 && move[1] % 6 <=3) { input[40] = 1; }
+		// In Center
+		else { input[41] = 1; }
+		return input;
+    }
 
     // Input needs to be {x, y}
     public static int[][] getPositionArray(int[] center_point) {
@@ -29,21 +53,6 @@ public class InputGenerator {
 	}
 	return positions;
     } 
-
-
-
-    public inputGenerator() {
-    }
-
-    // This is the method we want to use. Takes an array of board
-    // positions and a desired move, and generates an input array.
-    // Currently it only handles the first point, 2 spaces above the
-    // given point.
-    public static int[] getInput(String[][] board, int[] move) {
-	int[][] position_array = getPositionArray(move);
-	int[] input = processPoint(board, position_array);
-	return input;
-    }
 
     // For a given point on the board, returns [1,0,0] if its Black, 
     // [0,1,0] if its White, [0,0,1] if its Empty.
@@ -61,17 +70,11 @@ public class InputGenerator {
 	    else if (board[x][y].equals("B")) {
 		// much better!
 		input[3*j]=1;
-		input[3*j+1]=0;
-		input[3*j+2]=0;
 	    }
 	    else if (board[x][y].equals("W")) {
-		input[3*j]=0;
 		input[3*j+1]=1;
-		input[3*j+2]=0;
 	    }
 	    else if (board[x][y].equals("E")) {
-		input[3*j]=0;
-		input[3*j+1]=0;
 		input[3*j+2]=1;
 	    }
 	}
@@ -80,10 +83,10 @@ public class InputGenerator {
 
     // Using this to test the methods, should be deleted later on.
     public static void main(String[] args) {
-	String board_string = "E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,B,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,W,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E";
+	String board_string = "E,B,B,E,E,E,E,E,E,B,B,E,E,E,E,E,E,E,B,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,W,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E";
 	String[][] board = getBoardArray(board_string);
-	int[] move = {4,4};
-	int[] input = getInput(board,move);
+	int[] move = {0,0};
+	int[] input = getInput(board,move,9);
 	for (int i=0; i<input.length; ++i) {
 	    System.out.print(input[i] + ",");
 	}
