@@ -1,42 +1,80 @@
+/*
+  This code takes in a string representation of a board, e.g.,:
+
+string = "E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,B,E,E,E,E,E,E
+          E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E
+          E,E,E,E,E,E,W,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E"
+
+And will return the array of 42 elements that contains the features
+we'll use for that position.
+
+ */
+
 import java.util.*;
 
 public class inputGenerator {
-	
+
+	public static final int[][] locations = { {0,-2}, {-1,-1}, {0,-1}, {1,-1}, {-2,0}, {-1,0}, 
+										 {1,0}, {2,0}, {-1,1}, {0,1}, {1,1}, {0,2},};
+
+
+	// Input needs to be {x, y}
+	public static int[][] getPositionArray(int[] center_point) {
+		int x = center_point[0];
+		int y = center_point[1];
+		int[][] positions = new int[12][2];
+		for (int i=0; i<locations.length; ++i) {
+			positions[i][0] = locations[i][0] + x;
+			positions[i][1] = locations[i][1] + y;
+		}
+		return positions;
+	} 
+
+
+
 	public inputGenerator() {
 	}
 
-	// This is the method we want to use. Takes an array of board positions
-	// and a desired move, and generates an input array.
-	// Currently it only handles the first point, 2 spaces above the given point.
+	// This is the method we want to use. Takes an array of board
+	// positions and a desired move, and generates an input array.
+	// Currently it only handles the first point, 2 spaces above the
+	// given point.
 	public static int[] getInput(String[][] board, int[] move) {
-		int[] input = new int[42];
-		int[] pos_input = processPoint(board, move[0], move[1]+2);
-		// This doesn't look right, there must be a better way...
-		for (int i=0; i < 3; ++i) {
-			input[i] = pos_input[i];
-		}	
+		int[][] position_array = getPositionArray(move);
+		int[] input = processPoint(board, position_array);
+		// This doesn't look right, there must be a better way...	
 		return input;
 	}
 
 	// For a given point on the board, returns [1,0,0] if its Black, 
 	// [0,1,0] if its White, [0,0,1] if its Empty.
-	private static int[] processPoint(String[][] board, int x, int y) {	
-		int[] input = new int[3];		
-		if (board[x][y].equals("B")) {
-			// Also ugly. Ew.
-			input[0]=1;
-			input[1]=0;
-			input[2]=0;
-		}
-		if (board[x][y].equals("W")) {
-			input[0]=0;
-			input[1]=1;
-			input[2]=0;
-		}
-		if (board[x][y].equals("E")) {
-			input[0]=0;
-			input[1]=0;
-			input[2]=1;
+	private static int[] processPoint(String[][] board, int[][] positions) {	
+		int[] input = new int[42];
+		int x;
+		int y;
+		System.out.println(positions.length);
+		for (int j=0; j<positions.length; ++j) {
+			x = positions[j][0];
+			y = positions[j][1];
+			if ( x < 0 || x > 8 || y < 0 || y > 8 ) {
+				//do nothing!
+			}
+			else if (board[x][y].equals("B")) {
+				// much better!
+				input[3*j]=1;
+				input[3*j+1]=0;
+				input[3*j+2]=0;
+			}
+			else if (board[x][y].equals("W")) {
+				input[3*j]=0;
+				input[3*j+1]=1;
+				input[3*j+2]=0;
+			}
+			else if (board[x][y].equals("E")) {
+				input[3*j]=0;
+				input[3*j+1]=0;
+				input[3*j+2]=1;
+			}
 		}
 		return input;
 	}
