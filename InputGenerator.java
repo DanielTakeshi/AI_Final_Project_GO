@@ -36,7 +36,7 @@ public class InputGenerator {
 		// On Corner
 		if ( move[0] % 6 <= 3 && move[1] % 6 <=3) { input[39] = 1; }
 		// On Edge
-		else if ( move[0] % 6 <= 3 && move[1] % 6 <=3) { input[40] = 1; }
+		else if ( move[0] % 6 <= 3 || move[1] % 6 <=3) { input[40] = 1; }
 		// In Center
 		else { input[41] = 1; }
 		return input;
@@ -85,8 +85,8 @@ public class InputGenerator {
     public static void main(String[] args) {
 	String board_string = "E,B,B,E,E,E,E,E,E,B,B,E,E,E,E,E,E,E,B,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,W,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E";
 	String[][] board = getBoardArray(board_string);
-	int[] move = {0,0};
-	int[] input = getInput(board,move,9);
+	int[] move = {7,4};
+	int[] input = getInput(board,move,53);
 	for (int i=0; i<input.length; ++i) {
 	    System.out.print(input[i] + ",");
 	}
