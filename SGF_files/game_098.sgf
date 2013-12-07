@@ -1,0 +1,21 @@
+(
+;
+FF[4]
+SZ[9]
+PB[]
+BR[]
+PW[]
+WR[]
+KM[5.5]
+DT[]
+PC[Japan]
+RE[]
+SO[http://gobase.org/9x9/book/]
+US[Created by sgf2misc]
+AP[sgf2misc:3.1.9]
+;B[ee];W[ge];B[ce];W[de];B[df];W[dd];B[ed];W[cf];B[dc];W[cd]
+;B[cc];W[be];B[bd];W[ce];B[cg];W[bc];B[fc];W[gg];B[bb];W[bg]
+;B[dg];W[ad];B[bh];W[ah];B[hd];W[gd];B[gc];W[fh];B[ff];W[he]
+;B[hc];W[ab];B[eh];W[fg];B[hh];W[hg];B[di];W[ih];B[ba];W[bi]
+;B[ch];W[eg];B[ef];W[gf];B[ie];W[if];B[id];W[fi];B[ei];W[ag]
+)

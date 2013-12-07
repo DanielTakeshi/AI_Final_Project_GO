@@ -3,7 +3,9 @@ import java.util.*;
 
 /**
  * A method that processes fuego output and .sgf files.
-
+ *
+ * (c) 2013 by Simon, Daniel, and Philippe
+ *
  * readGoBoard: Processes the output of the GTP command "go_board"
  * currently we do not use this output, but it may be useful later
  *
@@ -34,20 +36,40 @@ public class Transcripter {
 	translate.put("g","6");
 	translate.put("h","7");
 	translate.put("i","8");
+    };
+
+    public static void main(String[] args) {
+	Transcripter tranny = new Transcripter();
+	File[] files = new File("SGF_files/").listFiles();
+	String[] file_names = new String[files.length];	
+	for (int i=0; i<files.length; ++i) {
+		file_names[i] = "SGF_files/" + files[i].getName();
+		System.out.println(file_names[i]);
+	}
+	ReadFile reader = new ReadFile();
+	try {
+	    String game_string = reader.openFile(file_names[0]);
+	    ArrayList<String> game_list = tranny.readMoves(game_string);
+	    for (int i = 0; i < game_list.size(); i++) {
+		//System.out.println(game_list.get(i));
+	    }
+	} catch (IOException e) {
+	    System.out.println(e);
+	}
     }
+
 
     // Parses fuego output for GTP Command "go_board"
     // Don't need this for training, can do this later!
     public String readGoBoard(String output) throws IOException {
 
 	Scanner reader = new Scanner(output);
-
 	String data = "";
 	String[] contents;
-	String next_line = reader.readLine();
+	String next_line = reader.nextLine();
 
 	while (reader.hasNextLine()) {
-	    next_line = reader.readLine();
+	    next_line = reader.nextLine();
 
 	    // fuego splits based on spaces
 	    contents = next_line.split(" ");
@@ -85,13 +107,12 @@ public class Transcripter {
 	String next_line;
 
 	while (reader.hasNextLine()) {
-	    next_line = reader.readLine()
+	    next_line = reader.nextLine();
 	    contents = next_line.split(" ");
 	    data += processShowBoard(contents);
 	}
 
 	reader.close();
-	System.out.println(data.length());
 	// remove the last comma
 
 	return data.substring(0,data.length()-1);
@@ -118,9 +139,8 @@ public class Transcripter {
 	return data; 
     }
 
-    // In .sgf format, the first line begins with open brackets and contains 
-    // Game Recorder information. Every other line that documents a move is of
-    // the form ";B[dc]"
+    // In .sgf format, moves are separated by semicolons, i.e., ";B[xy]". We thus
+    // split on those semicolons, but we have 1 special case where one line is ";".
     public ArrayList<String> readMoves(String sgf_contents ) throws IOException {
 	Scanner reader = new Scanner(sgf_contents);
 
@@ -128,22 +148,18 @@ public class Transcripter {
 	ArrayList<String> data = new ArrayList<String>();
 	String next_line;
 
-	while (reader.hasNextLine()) {
-	    next_line = reader.readLine();
 
-	    contents = next_line.split(" ");
-	    // If the current line is nonempty, and the first character is 
-	    // not just whitespace.
-	    if ( contents.length > 0 && contents[0].length() > 0 ) {
-		// if the first character in the line is ";"
-		String first_character = contents[0].substring(0,1);
-		if ( first_character.equals(";") ) {
+	while (reader.hasNextLine()) {
+	    next_line = reader.nextLine();
+	    contents = next_line.split(";");
+	    // Take care of case when we may have one semicolon, so = ["", ""]
+	    if ( contents.length > 1 && contents[1].length() > 0 ) {
+		for (int i=1; i<contents.length; ++i) {
 		    // send the coordinates (in letter form) to the processor
-		    // function to convert to numbers.
-		    String coordinates = contents[0].substring(3,5);
-		    data.add( contents[0].substring(1,2) + processSgfPosition(coordinates));	
+		    String coordinates = contents[i].substring(2,4);
+		    data.add( contents[i].substring(0,1) + processSgfPosition(coordinates));
 		}
-	    }	
+	    }
 	}
 	reader.close();
 	return data;
