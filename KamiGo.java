@@ -38,20 +38,24 @@
 
 */
 
+// TODO: FIX THE COMMENTS ABOVE
+
+import java.io.*;
+import java.util.*;
+
 
 public class KamiGo {
 
     public static void main(String[] args) {
 
-	// STEP 0: Checks if args.length = 2 or 3; if train=y, we NEED third argument.
-
-	if ((args.length != 2 && args.length != 3) || (args[1].equals("y") && args.length == 2)) {
-	    System.err.println("USAGE: java KamiGo <data> <train> <iterations> (need \"iterations\" if \"train\" = \"y\")");
+	// STEP 0: Checks if args.length = 1 or 3; if train=y, we NEED three arguments.
+	if ((args.length != 1 && args.length != 3) || (args[0].equals("y") && args.length != 3)) {
+	    System.err.println("USAGE: java KamiGo <train> <data> <iterations> (last 2 needed if train = \"y\")");
 	    System.exit(1);
 	}
 
 	int num_iterations;
-	boolean do_we_train = args[1].equals("y");
+	boolean do_we_train = args[0].equals("y");
 
 	if (do_we_train) {
 	    try {
@@ -63,7 +67,6 @@ public class KamiGo {
 	}
 		
 	// STEP 1: BACKPROPAGATION
-	// Call Simon's code and store the info so we can use it later!!
 	if (do_we_train) {
 	    System.out.println("Call backpropagation code.");
 	} else {
@@ -71,11 +74,45 @@ public class KamiGo {
 	}
 
 	// STEP 2: PLAY THE GAME!
-	play_game();
+	try {
+	    System.out.println("Now playing the game ...\n");
+	    playGame();
+	}
+	catch (IOException e) {
+	    System.out.println(e);
+	}
     }
 
-    // Plays the game!
-    public static void play_game() {
-	System.out.println("We are playing the game!");
+    /*
+     * This allows the human player to write in commands to actually
+     * play a game.
+     *
+     */
+    public static void playGame() throws IOException {
+	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+	String user_input = reader.readLine();
+	String[] user_input_elements = user_input.split(" ");
+
+	//ship it off to FuegTalker
+	String fuego_output = "HI DAN";
+
+	if ( user_input.equals("showboard") ) {
+	    System.out.println(fuego_output);
+	}
+	else if ( user_input_elements[0].equals("play") ) {
+	    // If fuego returns "=" all good
+	    // If fuego returns "?" bad string
+	    String test_symbol = fuego_output.split(" ")[0];
+	    if ( test_symbol.equals("=") ) {
+		// run computer turn
+	    }
+	    else {
+		System.out.println( fuego_output  );
+	    }
+	}
+	else {
+	    //Check later, be consistent with fuego error messages
+	    System.out.println("? Unrecognized Input");
+	}
     }
 }
