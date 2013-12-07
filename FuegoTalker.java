@@ -14,25 +14,25 @@ import java.util.*;
 
 public class FuegoTalker {
 
-	public FuegoTalker() {
+    public FuegoTalker() {
 
+    }
+
+    public static void main(String[] args) throws IOException {		
+	String file_name = args[0];	
+	Transcripter writer = new Transcripter();
+
+	try {
+	    ReadFile file = new ReadFile(file_name);
+	    String contents = file.openFile();
+	    String board_state = writer.readShowBoard(contents);
+	    ArrayList<String> pro_moves = writer.readMoves(contents);
+	    writer.writeToFile("test_output.txt", board_state);
+	    writer.writeToFile("test_output.txt", pro_moves.get(0));
 	}
-
-	public static void main(String[] args) throws IOException {		
-		String file_name = args[0];	
-		Transcripter writer = new Transcripter();
-
-		try {
-			ReadFile file = new ReadFile(file_name);
-			String contents = file.openFile();
-			String board_state = writer.readShowBoard(contents);
-			ArrayList<String> pro_moves = writer.readMoves(contents);
-			writer.writeToFile("test_output.txt",board_state);
-			writer.writeToFile("test_output.txt",pro_moves.get(0));
-		}
-		catch (IOException e) {
-			System.out.println( e.getMessage() );
-		}	
-	}
+	catch (IOException e) {
+	    System.out.println( e.getMessage() );
+	}	
+    }
 }
 

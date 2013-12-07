@@ -29,10 +29,9 @@
 
    COMMAND LINE INPUTS:
 
-   $ java KamiGo -d <data> <iterations> -i <backprop_input_file>  
+   $ java KamiGo -d <data> <iterations> -t <backprop_input_file> -
 
    1. <data> is a text file that has the list of games in a way our ANN can read it
-   2. <train> should be either "y" or "n" -- if no, use old ANN, if yes then train one and use that.
    3. <iterations> is how many times we run backpropagation (stopping criteria). OPTIONAL parameter
 
    Num of hidden nodes is set to a constant, and default weights are ~Unif[-0.5, 0.5].

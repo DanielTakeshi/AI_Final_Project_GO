@@ -12,9 +12,6 @@ public class ReadFile {
     public String openFile(String file_path) throws IOException {
 	Scanner scanny = new Scanner(new File(file_path));
 
-	//FileReader reader = new FileReader(file_path);
-	//BufferedReader text_reader = new BufferedReader(reader);
-
 	ArrayList<String> data = new ArrayList<String>();
 	String contents = "";
 	String next_line;

@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * A method that processes fuego output and .sgf files.
+ * A method that processes .sgf files into output for passing to fuego, and fuego text output to our board representation
  *
  * (c) 2013 by Simon, Daniel, and Philippe
  *
@@ -22,13 +22,13 @@ import java.util.*;
  **/
 
 public class Transcripter {
-
     // Map from letter notation of .sgf file to coordinate number (x,y)
     private HashMap<String,String> translate = new HashMap<String,String>();
-	// Map from Kami Go notation to Fuego Notation
-	// Fuego uses stupid orientation, so we have to deal
+
+    // Map from Kami Go notation to Fuego Notation
+    // Fuego uses stupid orientation, so we have to deal
     private String[] KF_translate1 = {"A","B","C","D","E","F","G","H","J"};
-	private String[] KF_translate2 = {"9","8","7","6","5","4","3","2","1"};
+    private String[] KF_translate2 = {"9","8","7","6","5","4","3","2","1"};
 
     public Transcripter() {
 	translate.put("a","0");
@@ -43,19 +43,23 @@ public class Transcripter {
     };
 
     public static void main(String[] args) {
-	
 	Transcripter tranny = new Transcripter();
 	System.out.println( tranny.getFuegoMove( "B43" ) );	
+
 	File[] files = new File("SGF_files/").listFiles();
 	String[] file_names = new String[files.length];	
+
 	for (int i=0; i<files.length; ++i) {
-		file_names[i] = "SGF_files/" + files[i].getName();
-		System.out.println(file_names[i]);
+	    file_names[i] = "SGF_files/" + files[i].getName();
+	    System.out.println(file_names[i]);
 	}
+
 	ReadFile reader = new ReadFile();
+
 	try {
 	    String game_string = reader.openFile(file_names[0]);
 	    ArrayList<String> game_list = tranny.readMoves(game_string);
+
 	    for (int i = 0; i < game_list.size(); i++) {
 		//System.out.println(game_list.get(i));
 	    }
@@ -93,7 +97,16 @@ public class Transcripter {
     // The standard input processing function. Returns a String of all 
     // words in the contents array. The method is a template, and can
     // be modified later to handle other inputs.
-    private String processStandard( String[] contents ) {
+
+    /*
+     * processStandard is used for...
+     * processStandard takes in ... 
+     * it assumes that the input is in the form...
+     *
+     * it returns ...
+     */
+
+    private String processStandard (String[] contents) {
 	String data = "";
 
 	for (int i=0; i<contents.length; ++i) {
@@ -104,8 +117,19 @@ public class Transcripter {
 	return data;
     }
 
-    // Parses fuego output for GTP Command "showboard"
-    public String readShowBoard(String output) throws IOException {
+    /*
+     * readShowBoard is used for translating the fuego output for
+     * "showboard", a single string representing the game board.
+     * 
+     * It returns a board representation in the form of a comma-separated
+     * 81 position string E,B,W,... where every 9 letters represents a row.
+     * 
+     * readShowBoard calls processShowBoard to process individual lines of the 
+     * board, passing it the line split by spaces.  The appends the string
+     * returned by readShowBoard to the running game state string.
+     */
+
+    public String readShowBoard (String output) throws IOException {
 	Scanner reader = new Scanner(output);
 
 	String data = "";
@@ -113,21 +137,32 @@ public class Transcripter {
 	String next_line;
 
 	while (reader.hasNextLine()) {
+	    // pass the game state line to processShowBoard
 	    next_line = reader.nextLine();
 	    contents = next_line.split(" ");
 	    data += processShowBoard(contents);
 	}
 
 	reader.close();
-	// remove the last comma
 
+	// remove the last comma
 	return data.substring(0,data.length()-1);
     }
 
+    /* the game board is in the form :
+     
+     * 
+     * (X . . .
+     *  B W E ...
+     *  ...
+     *  W B E ...)
+     */
+
     // Converts the fuego board ouput to a more human-readable version.
     // Output is of the form "E,E,B,W,B,E,E,"
-    private String processShowBoard( String[] contents ) {
+    private String processShowBoard (String[] contents) {
 	String data = "";		
+
 	for (int i = 0; i < contents.length; i++) {
 	    // If the board space is empty
 	    if (contents[i].equals(".") || contents[i].equals("+")) {
@@ -147,18 +182,18 @@ public class Transcripter {
 
     // In .sgf format, moves are separated by semicolons, i.e., ";B[xy]". We thus
     // split on those semicolons, but we have 1 special case where one line is ";".
-    public ArrayList<String> readMoves(String sgf_contents ) throws IOException {
+    public ArrayList<String> readMoves (String sgf_contents) throws IOException {
 	Scanner reader = new Scanner(sgf_contents);
 
 	String[] contents;
 	ArrayList<String> data = new ArrayList<String>();
 	String next_line;
 
-
 	while (reader.hasNextLine()) {
 	    next_line = reader.nextLine();
 	    contents = next_line.split(";");
 	    // Take care of case when we may have one semicolon, so = ["", ""]
+
 	    if ( contents.length > 1 && contents[1].length() > 0 ) {
 		for (int i=1; i<contents.length; ++i) {
 		    // send the coordinates (in letter form) to the processor
@@ -173,12 +208,12 @@ public class Transcripter {
 
     // Converts letter notation of .sgf file to coordinate number (x,y)
     // x is left to right, y is top to bottom.
-    private String processSgfPosition(String letters) {
+    private String processSgfPosition (String letters) {
 	return translate.get(letters.substring(0,1)) + translate.get(letters.substring(1,2));
     }
 
     // A simple file writer. Currently set to always append to the file at the given path.
-    public void writeToFile(String path, String content) throws IOException {
+    public void writeToFile (String path, String content) throws IOException {
 	FileWriter writer = new FileWriter(path , true);
 	PrintWriter printer = new PrintWriter( writer );
 
@@ -190,20 +225,22 @@ public class Transcripter {
 	writer.close();
     }
 
-	public String getFuegoMove(String kami_move) {
-		String fuego_string = "";		
-		String color = kami_move.substring(0,1);
-		int row = Integer.parseInt(kami_move.substring(1,2));
-		int col = Integer.parseInt(kami_move.substring(2,3));
-		if (color.equals("B")) {
-			fuego_string += "play Black ";
-		}
-		else {
-			fuego_string += "play White ";
-		}
-		fuego_string += KF_translate1[row] + KF_translate2[col];
-		return fuego_string;
+    public String getFuegoMove(String kami_move) {
+	String fuego_string = "";		
+	String color = kami_move.substring(0,1);
+
+	int row = Integer.parseInt(kami_move.substring(1,2));
+	int col = Integer.parseInt(kami_move.substring(2,3));
+
+	if (color.equals("B")) {
+	    fuego_string += "play Black ";
+	} else {
+	    fuego_string += "play White ";
 	}
+
+	fuego_string += KF_translate1[row] + KF_translate2[col];
+	return fuego_string;
+    }
 }
 
 
