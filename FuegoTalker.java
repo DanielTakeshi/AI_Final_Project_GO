@@ -42,6 +42,7 @@ public class FuegoTalker {
 		    for (String move : movesList) {
 			// for each move, we map to the move we output for fuego
 			System.out.println(myTranscriptor.genFuegoMove(move));
+			System.out.println("showboard");
 		    } 		    
 		} catch (IOException e) {
 		    System.out.println(e);

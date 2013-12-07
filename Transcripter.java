@@ -201,11 +201,15 @@ public class Transcripter {
 	    contents = next_line.split(";");
 	    // Take care of case when we may have one semicolon, so = ["", ""]
 
-	    if ( contents.length > 1 && contents[1].length() > 0 ) {
+	    // First check if line has a ;
+	    if ( contents.length > 1 ) {
 		for (int i=1; i<contents.length; ++i) {
-		    // send the coordinates (in letter form) to the processor
-		    String coordinates = contents[i].substring(2,4);
-		    data.add( contents[i].substring(0,1) + processSgfPosition(coordinates));
+		    // Then check if data is an actual move
+		    if ( contents[i].length() == 5 ) {
+			// send the coordinates (in letter form) to the processor
+			String coordinates = contents[i].substring(2,4);
+			data.add( contents[i].substring(0,1) + processSgfPosition(coordinates));
+		    }
 		}
 	    }
 	}
