@@ -143,17 +143,15 @@ public class Transcripter {
 	return data.substring(0,data.length()-1);
     }
 
-    /* the game board is in the form :
-     
-     * 
-     * (X . . .
-     *  B W E ...
-     *  ...
-     *  W B E ...)
+    /* 
+     * processShowBoard translates a line of fuego output to our output
+     *
+     * processShowBoard takes a single line of the fuego board state, in the form of 
+     * (X . . . . O . . . ...)
+     * and maps them to a B,E,E,...,W, string
+     *
+     * for every line 
      */
-
-    // Converts the fuego board ouput to a more human-readable version.
-    // Output is of the form "E,E,B,W,B,E,E,"
 
     private String processShowBoard (String[] contents) {
 	String data = "";		
