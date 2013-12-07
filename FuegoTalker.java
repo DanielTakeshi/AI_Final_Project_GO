@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.*;
 import java.util.*;
+import java.net.*;
 
 /**
  * A class that sends messages to Fuego and receives the standard
@@ -17,6 +18,16 @@ public class FuegoTalker {
 
     }
     
+    public static void push (ArrayList<String> movesList, Transcripter myTranscriptor) {
+	for (String move : movesList) {
+	    // for each move, we map to the move we output for fuego
+	    System.out.println("boardsize 9");
+	    System.out.println(myTranscriptor.genFuegoMove(move));
+	    System.out.println("showboard");
+	    pull(move);
+	} 		    
+    }
+
     /*
      * push takes in a file representing the directory of all the sgf files we want to transform to our format
      *
@@ -34,16 +45,11 @@ public class FuegoTalker {
 
 	    if (curFile.isFile() && curFile.canRead()) {
 		// initialize fuego to a 9x9 board
-		System.out.println("boardsize 9");
-		ArrayList<String> movesList;
+
 
 		try {
-		    movesList = myTranscriptor.readMoves(curFile);
-		    for (String move : movesList) {
-			// for each move, we map to the move we output for fuego
-			System.out.println(myTranscriptor.genFuegoMove(move));
-			System.out.println("showboard");
-		    } 		    
+		    ArrayList<String> movesList = myTranscriptor.readMoves(curFile);
+		    push(movesList, myTranscriptor);
 		} catch (IOException e) {
 		    System.out.println(e);
 		}
@@ -51,8 +57,34 @@ public class FuegoTalker {
 	}
     }
     
-    public static void pull() {
+    /*
+     *
+     */
+
+    public static void pull(String move) {
+	try {
+	    BufferedReader readIn = new BufferedReader(new InputStreamReader(System.in));
+	    String resultString = "";
+	    while (true) {
+
+		if (readIn.ready()) {
+		    // fuego has written something new out -- record string
+		    Scanner scanny = new Scanner(readIn);
+		    resultString = "";
+		    while (scanny.hasNextLine()) {
+			resultString += scanny.nextLine() + "\n";
+		    }
+		    break;
+		} else {
+		    Thread.sleep(100);
+		}
+	    } 
 	
+	
+	    System.out.println("******************************** printing recorded game trace **********************\n" + resultString + "********************************* done *************************");
+	} catch (Exception e) {
+	    System.out.println(e);
+	}
     }
     
     public static void main(String[] args) throws IOException {		
