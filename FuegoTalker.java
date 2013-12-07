@@ -19,12 +19,11 @@ public class FuegoTalker {
     }
     
     public static void push (ArrayList<String> movesList, Transcripter myTranscriptor) {
+	System.out.println("boardsize 9");
 	for (String move : movesList) {
 	    // for each move, we map to the move we output for fuego
-	    System.out.println("boardsize 9");
 	    System.out.println(myTranscriptor.genFuegoMove(move));
 	    System.out.println("showboard");
-	    pull(move);
 	} 		    
     }
 
@@ -61,36 +60,32 @@ public class FuegoTalker {
      *
      */
 
-    public static void pull(String move) {
-	try {
-	    BufferedReader readIn = new BufferedReader(new InputStreamReader(System.in));
-	    String resultString = "";
-	    while (true) {
+    public static void pull(File sgfPath, File trace) {
+	
+	// get the array of all the files we want to transform in the directory
+	File[] sgfFileArray = sgfPath.listFiles();
+	Transcripter myTranscriptor = new Transcripter();
+	
+	for (int i = 0; i < sgfFileArray.length; i++) {
+	    // test to make sure that the file is actually there
+	    File curFile = sgfFileArray[i];
 
-		if (readIn.ready()) {
-		    // fuego has written something new out -- record string
-		    Scanner scanny = new Scanner(readIn);
-		    resultString = "";
-		    while (scanny.hasNextLine()) {
-			resultString += scanny.nextLine() + "\n";
-		    }
-		    break;
-		} else {
-		    Thread.sleep(100);
+	    if (curFile.isFile() && curFile.canRead()) {
+		// initialize fuego to a 9x9 board
+		try {
+		    ArrayList<String> movesList = myTranscriptor.readMoves(curFile);
+		    push(movesList, myTranscriptor);
+		} catch (IOException e) {
+		    System.out.println(e);
 		}
-	    } 
-	
-	
-	    System.out.println("******************************** printing recorded game trace **********************\n" + resultString + "********************************* done *************************");
-	} catch (Exception e) {
-	    System.out.println(e);
+	    }
 	}
     }
     
-    public static void main(String[] args) throws IOException {		
-	// read in a directory
-	File trainDir = new File(args[0]);
-	push(trainDir);
-    }
+public static void main(String[] args) throws IOException {		
+    // read in a directory
+    File trainDir = new File(args[0]);
+    push(trainDir);
+}
 }
 
