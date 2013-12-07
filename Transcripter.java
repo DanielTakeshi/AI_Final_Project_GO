@@ -41,16 +41,16 @@ public class Transcripter {
 	translate.put("h","7");
 	translate.put("i","8");
     };
-
+    /*
     public static void main(String[] args) {
 
 	Transcripter tranny = new Transcripter();
-	System.out.println( tranny.getFuegoMove( "B43" ) );	
+	System.out.println(tranny.genFuegoMove("B43"));	
 
 	File[] files = new File("SGF_files/").listFiles();
 	String[] file_names = new String[files.length];	
 
-	for (int i=0; i<files.length; ++i) {
+	for (int i = 0; i < files.length; i++) {
 	    file_names[i] = "SGF_files/" + files[i].getName();
 	    System.out.println(file_names[i]);
 	}
@@ -68,7 +68,7 @@ public class Transcripter {
 	    System.out.println(e);
 	}
     }
-
+    */
 
     // Parses fuego output for GTP Command "go_board"
     // Don't need this for training, can do this later!
@@ -175,9 +175,22 @@ public class Transcripter {
 
     // In .sgf format, moves are separated by semicolons, i.e., ";B[xy]". We thus
     // split on those semicolons, but we have 1 special case where one line is ";".
+    
+    /*
+     * readMoves takes a string representing the contents of an sgf file
+     * and returns an arrayList of the string moves for the game
+     *
+     * .sgf files formatted such that each move is prepended with a semicolon
+     * we split on the semi-colon and map each move (;) B[ab] (;) -> Bxy
+     * where x and y are the integer coordinates of the move.
+     *
+     * we call processSgfPosition to map some ab -> xy 
+     *
+     * the overall arraylist is then an ordered list of the strings of the form bxy
+     */
 
-    public ArrayList<String> readMoves (String sgf_contents) throws IOException {
-	Scanner reader = new Scanner(sgf_contents);
+    public ArrayList<String> readMoves (File sgfFile) throws IOException {
+	Scanner reader = new Scanner(sgfFile);
 
 	String[] contents;
 	ArrayList<String> data = new ArrayList<String>();
@@ -199,6 +212,10 @@ public class Transcripter {
 	reader.close();
 	return data;
     }
+    /*
+     * processSgfPosition maps a string "ab" to "xy", where xy is the string for the integer position index
+     */
+
     // Converts letter notation of .sgf file to coordinate number (x,y)
     // x is left to right, y is top to bottom.
     private String processSgfPosition (String letters) {
@@ -206,19 +223,23 @@ public class Transcripter {
     }
 
     // A simple file writer. Currently set to always append to the file at the given path.
+    
     public void writeToFile (String path, String content) throws IOException {
 	FileWriter writer = new FileWriter(path , true);
 	PrintWriter printer = new PrintWriter( writer );
-
 	printer.printf( "%s" + "%n" , content);
-
 	printer.flush();
 	printer.close();
 	writer.flush();
 	writer.close();
     }
 
-    public String getFuegoMove(String kami_move) {
+    /*
+     * getFuegoMove takes in a single move of the form "Bxy" and maps it back to the fuego command
+     * for making the move
+     */
+
+    public String genFuegoMove(String kami_move) {
 	String fuego_string = "";		
 	String color = kami_move.substring(0,1);
 
