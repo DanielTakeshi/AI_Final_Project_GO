@@ -1,3 +1,5 @@
+import java.io.*;
+
 /*
  * A Program that trains KamiGo
  * 
@@ -9,7 +11,7 @@
  * pass in the corresponding inputs.
  */
 
-public class Trainer() {
+public class Trainer {
 
 	// Each string holds the transcript for a single game
 	private String[] training_games;
@@ -18,14 +20,14 @@ public class Trainer() {
 
 	public Trainer(String tree_file, String file_names) {
 		KamiNet = new GoTree();
-		KamiNet.buildTree(tree_file);
+		KamiNet.buildTree(new File(tree_file)); // is this right?
 		training_games = file_names.split(" ");
 		genny = new InputGenerator();
 	}
 
 	// We have a list of games; we train once with each game in order,
 	// and then repeat the process until we've done it num_repeat times.
-	public void runTraining(int num_repeat) {
+	public void runTraining(int num_repeat) throws Exception {
 		for (int rep=0; rep<num_repeat; ++rep) {
 			for (int i=0; i < training_games.length; ++i) {
 				runGame(training_games[i]);
@@ -33,11 +35,13 @@ public class Trainer() {
 		}
 	}
 
+	// do we need the throws exception parts?
+
 	// For a given game, we feed it to the neural net so that it can train
 	// We need to do some bookkeeping and formatting of the input
-	private void runGame(String transcript) {
+	private void runGame(String transcript) throws Exception {
 		String[] transcript_list = transcript.split("\n"); 
-		int num_moves = transcript_list / 2;
+		int num_moves = transcript_list.length / 2;
 
 		for (int i=0; i < num_moves; ++i) {
 			String board_string = transcript_list[2*i];
@@ -52,13 +56,13 @@ public class Trainer() {
 					int[] move = {x,y};
 					// We only train if we are considering an EMPTY board spot
 					if ( board[x][y].equals("E") ) {
-						String[] input = genny.getInput(board,move,i);
+						int[] input = genny.getInput(board,move,i);
 						String test_move = String.valueOf(x) + String.valueOf(y);
-						if ( proMove.substring(1,3).equals(test_move) ) {
-							train(input, 1 );
+						if ( pro_move.substring(1,3).equals(test_move) ) {
+							KamiNet.train(input, 1 );
 						}
 						else {
-							train(input, 0 );
+							KamiNet.train(input, 0 );
 						}						
 					}
 				}

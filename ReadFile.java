@@ -10,20 +10,20 @@ public class ReadFile {
     }
 
     public String openFile(String file_path) throws IOException {
-	Scanner scanny = new Scanner(new File(file_path));
+		Scanner scanny = new Scanner(new File(file_path));
 
-	//FileReader reader = new FileReader(file_path);
-	//BufferedReader text_reader = new BufferedReader(reader);
+		//FileReader reader = new FileReader(file_path);
+		//BufferedReader text_reader = new BufferedReader(reader);
 
-	ArrayList<String> data = new ArrayList<String>();
-	String contents = "";
-	String next_line;
-	while (scanny.hasNextLine()) {
-	    next_line = scanny.nextLine();
-	    contents += next_line;
-	    contents += "\n";
-	}
-	scanny.close();
-	return contents;
+		ArrayList<String> data = new ArrayList<String>();
+		String contents = "";
+		String next_line;
+		while (scanny.hasNextLine()) {
+			next_line = scanny.nextLine();
+			contents += next_line;
+			contents += "\n";
+		}
+		scanny.close();
+		return contents;
     }
 }
