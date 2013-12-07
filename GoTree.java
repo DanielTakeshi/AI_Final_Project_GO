@@ -265,7 +265,7 @@ public class GoTree implements GoTreeInterface {
 
     public void toFile () {
 	// called without a specified output -- writes out to an myID.System.nanoTime.txt file:
-	this.toFile(new File("Tree" + myID + "." System.nanoTime + ".txt"));
+	this.toFile(new File("Tree" + myID + "." + System.nanoTime() + ".txt"));
     }
 
     public void toFile (File outFile) {
