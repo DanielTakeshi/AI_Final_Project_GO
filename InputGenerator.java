@@ -28,9 +28,9 @@ public class InputGenerator {
 		int[][] position_array = getPositionArray(move);
 		int[] input = processPoint(board, position_array);
 		// Early Game		
-		if (move_count <= 10) { input[36] = 1; }
+		if (move_count < 10) { input[36] = 1; }
 		// Mid Game
-		else if (move_count <= 40) { input[37] = 1; }
+		else if (move_count < 40) { input[37] = 1; }
 		// Late Game
 		else { input[38] = 1; }
 		// On Corner
