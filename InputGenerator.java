@@ -25,21 +25,21 @@ public class InputGenerator {
     // Currently it only handles the first point, 2 spaces above the
     // given point.
     public static int[] getInput(String[][] board, int[] move, int move_count) {
-		int[][] position_array = getPositionArray(move);
-		int[] input = processPoint(board, position_array);
-		// Early Game		
-		if (move_count < 10) { input[36] = 1; }
-		// Mid Game
-		else if (move_count < 40) { input[37] = 1; }
-		// Late Game
-		else { input[38] = 1; }
-		// On Corner
-		if ( move[0] % 6 <= 3 && move[1] % 6 <=3) { input[39] = 1; }
-		// On Edge
-		else if ( move[0] % 6 <= 3 || move[1] % 6 <=3) { input[40] = 1; }
-		// In Center
-		else { input[41] = 1; }
-		return input;
+	int[][] position_array = getPositionArray(move);
+	int[] input = processPoint(board, position_array);
+	// Early Game		
+	if (move_count < 10) { input[36] = 1; }
+	// Mid Game
+	else if (move_count < 40) { input[37] = 1; }
+	// Late Game
+	else { input[38] = 1; }
+	// On Corner
+	if ( move[0] % 6 <= 3 && move[1] % 6 <=3) { input[39] = 1; }
+	// On Edge
+	else if ( move[0] % 6 <= 3 || move[1] % 6 <=3) { input[40] = 1; }
+	// In Center
+	else { input[41] = 1; }
+	return input;
     }
 
     // Input needs to be {x, y}
