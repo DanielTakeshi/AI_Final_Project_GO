@@ -25,6 +25,10 @@ public class Transcripter {
 
     // Map from letter notation of .sgf file to coordinate number (x,y)
     private HashMap<String,String> translate = new HashMap<String,String>();
+	// Map from Kami Go notation to Fuego Notation
+	// Fuego uses stupid orientation, so we have to deal
+    private String[] KF_translate1 = {"A","B","C","D","E","F","G","H","J"};
+	private String[] KF_translate2 = {"9","8","7","6","5","4","3","2","1"};
 
     public Transcripter() {
 	translate.put("a","0");
@@ -39,7 +43,9 @@ public class Transcripter {
     };
 
     public static void main(String[] args) {
+	
 	Transcripter tranny = new Transcripter();
+	System.out.println( tranny.getFuegoMove( "B43" ) );	
 	File[] files = new File("SGF_files/").listFiles();
 	String[] file_names = new String[files.length];	
 	for (int i=0; i<files.length; ++i) {
@@ -183,6 +189,21 @@ public class Transcripter {
 	writer.flush();
 	writer.close();
     }
+
+	public String getFuegoMove(String kami_move) {
+		String fuego_string = "";		
+		String color = kami_move.substring(0,1);
+		int row = Integer.parseInt(kami_move.substring(1,2));
+		int col = Integer.parseInt(kami_move.substring(2,3));
+		if (color.equals("B")) {
+			fuego_string += "play Black ";
+		}
+		else {
+			fuego_string += "play White ";
+		}
+		fuego_string += KF_translate1[row] + KF_translate2[col];
+		return fuego_string;
+	}
 }
 
 
