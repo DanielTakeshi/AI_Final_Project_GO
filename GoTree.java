@@ -1,6 +1,7 @@
 import structure5.Vector;
 import java.io.*;
 import java.util.*;
+import java.lang.System;
 
 /*
  * A Feed Forward Tree -- designed for playing Go -- simon chase
@@ -9,10 +10,33 @@ import java.util.*;
  * value for each node.  There is a single output node for this particular FFTree, but it could easily be extended
  * to have multiple output nodes.
  *
+ * The constructor is empty -- buildTree(file) or buildTree(int...) must be called to initialize the tree to the state
+ * saved in a file, or to a random initialization, before the ann is functional.
  *
+ * train(int[] input, int outcome) takes an int array that represents the board state around a possible move, 
+ * and an outcome integer in {0, 1} that
+ * indicates whether the move was a "pro" move or not: the input is tracing a game, and {0} is presented with input that 
+ * does not represent the actual move made by the professional player (but 1 does).
+ *
+ * train itself calls the following functions
+ * 1. propagateForward, which calculates the output value for each node as given by the input propagated
+ * through the tree.
+ * 2. propagateBackward, which calculates the error values for each node as given by the desired output.
+ * 3. update, which commits the changes to the weights given by the error values
+ *
+ * genMove (int[] input) takes a board view around a (presumably) empty position, and returns the value in range (0,1)
+ * that it associates with making that move.
+ *
+ * toFile writes the tree out to a file: if no file is explicitly supplied, then the tree writes itself to a unique file name
+ * given by its id and the time when toFile was called. 
+ *
+ * setMew(double mewIn) sets the learning rate to be the input mewIn.
  */
 
 public class GoTree implements GoTreeInterface {
+    // unique id for the tree
+    long myID;
+
     // input, hidden, and output num are the node counts for each layer
     int inputNum;
     int hiddenNum;
@@ -34,50 +58,17 @@ public class GoTree implements GoTreeInterface {
     public GoTree () {
     }
 
-    public void toFile (File outFile) {
-	// write the FFTree out to file
-	try {
-	    PrintWriter writer = new PrintWriter(outFile);
-	    writer.println(inputNum + "," + hiddenNum + "," + mew);
+    /*
+     * The buildTree method has two forms:
+     *
+     * 1. buildTree (file) will build the ann by reading in from a file and initializing the tree to the state 
+     * saved in the file.  The file format is unique to the toFile and buildTree (file) methods - they are complementary
+     * methods.
+     *
+     * 2. buildTree (int...) will build a new ann from "scratch" to the given specifications -- the weights for all nodes
+     * are initialized to random values between -.5 and .5
+     */
 
-	    writer.println("%");
-	
-	    Double[] tempArray;
-
-	    // write out all hidden weight arrays as 
-	    // (hidden array 0) input_0, input_1, ..., input_k
-	    // (hidden array 1) input_0, input_1, ..., input_k
-	    // ...
-	    // (hidden array j) input_0, input_1, ... ...
-
-	    for (int i = 0; i < hiddenNum; i++) {
-		tempArray = hiddenWeight.get(i);
-
-		writer.print(tempArray[0]);
-		for (int p = 1; p < inputNum; p++) {
-		    writer.print("," + tempArray[p]);
-		}
-		writer.print("\n");
-	    }
-	
-	    // end of hidden weights section
-	    writer.println("%");
-	
-	    // write out the output weight array as 
-	    // (single output array) hidden_0, hidden_1, ..., hidden_k
-	
-	    writer.print(outputWeight[0]);
-
-	    for (int i = 1; i < hiddenNum; i++) {
-		writer.print("," + outputWeight[i]);
-	    }
-	    writer.print("\n");
-	    writer.flush();
-	    writer.close();
-	} catch (Exception e) {
-
-	}
-    }
 
     public void buildTree (File inFile) {
 	// build the tree from a file where we have saved the tree
@@ -85,13 +76,14 @@ public class GoTree implements GoTreeInterface {
 	try {
 	    Scanner scanny = new Scanner(inFile);
 	    
-	    // read in the first line -- has the input number, hidden num, and the learning rate in the first line
+	    // read in the first line -- has the input number, hidden num, learning rate, and the tree ID in the first line
 	    String[] firstLine = scanny.nextLine().split(",");
 
 	    inputNum = Integer.parseInt(firstLine[0]);
 	    hiddenNum = Integer.parseInt(firstLine[1]);
 	    mew = Double.parseDouble(firstLine[2]);
-	    
+	    myID = Long.parseLong(firstLine[3]);
+
 	    // initialize value and error structs
 	    hiddenOutput = new Double[hiddenNum];
 	    hiddenError = new Double[hiddenNum];
@@ -130,6 +122,8 @@ public class GoTree implements GoTreeInterface {
     }
 
     public void buildTree (int inputIn, int hiddenIn, double mewIn) {
+	//initialize new id for this tree from sys.nanoTime
+	myID = System.nanoTime();
 
 	//store input values
 	inputNum = inputIn;
@@ -269,11 +263,66 @@ public class GoTree implements GoTreeInterface {
 	return outputValue;
     }
 
+    public void toFile () {
+	// called without a specified output -- writes out to an myID.System.nanoTime.txt file:
+	this.toFile(new File("Tree" + myID + "." System.nanoTime + ".txt"));
+    }
+
+    public void toFile (File outFile) {
+	// write the FFTree out to file
+	try {
+	    PrintWriter writer = new PrintWriter(outFile);
+	    writer.println(inputNum + "," + hiddenNum + "," + mew + "," + myID);
+
+	    writer.println("%");
+	
+	    Double[] tempArray;
+
+	    // write out all hidden weight arrays as 
+	    // (hidden array 0) input_0, input_1, ..., input_k
+	    // (hidden array 1) input_0, input_1, ..., input_k
+	    // ...
+	    // (hidden array j) input_0, input_1, ... ...
+
+	    for (int i = 0; i < hiddenNum; i++) {
+		tempArray = hiddenWeight.get(i);
+
+		writer.print(tempArray[0]);
+		for (int p = 1; p < inputNum; p++) {
+		    writer.print("," + tempArray[p]);
+		}
+		writer.print("\n");
+	    }
+	
+	    // end of hidden weights section
+	    writer.println("%");
+	
+	    // write out the output weight array as 
+	    // (single output array) hidden_0, hidden_1, ..., hidden_k
+	
+	    writer.print(outputWeight[0]);
+
+	    for (int i = 1; i < hiddenNum; i++) {
+		writer.print("," + outputWeight[i]);
+	    }
+	    writer.print("\n");
+	    writer.flush();
+	    writer.close();
+	} catch (Exception e) {
+
+	}
+    }
+
+    public void setMew(double mewIn) {
+	mew = mewIn;
+    }
+
     public static void main(String[] args) {
-	GoTree myGo = new GoTree();
+	/*GoTree myGo = new GoTree();
 	myGo.buildTree(new File("hi.txt"));
 	System.out.println("hi");
 	
 	myGo.toFile(new File("hi2.txt"));
+	*/
     }
 }
