@@ -56,7 +56,10 @@ public class InputGenerator {
     // For a given point on the board, returns [1,0,0] if its Black, 
     // [0,1,0] if its White, [0,0,1] if its Empty.
     private static int[] processPoint(String[][] board, int[][] positions) {	
-	int[] input = new int[42];
+	// 42 inputs + 1 bias term
+	int[] input = new int[43];
+	// bias term is always 1
+	input[42] = 1;
 	int x;
 	int y;
 	for (int j=0; j<positions.length; ++j) {

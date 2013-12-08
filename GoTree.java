@@ -40,6 +40,8 @@ public class GoTree implements GoTreeInterface {
     // input, hidden, and output num are the node counts for each layer
     int inputNum;
     int hiddenNum;
+    // number of hidden nodes including the extra bias node
+    int hiddenNumWithBias;
 
     // mew is the learning rate
     double mew;
@@ -81,19 +83,24 @@ public class GoTree implements GoTreeInterface {
 
 	    inputNum = Integer.parseInt(firstLine[0]);
 	    hiddenNum = Integer.parseInt(firstLine[1]);
+	    hiddenNumWithBias = hiddenNum + 1;
 	    mew = Double.parseDouble(firstLine[2]);
 	    myID = Long.parseLong(firstLine[3]);
 
 	    // initialize value and error structs
-	    hiddenOutput = new Double[hiddenNum];
-	    hiddenError = new Double[hiddenNum];
+	    // +1 indicates bias term, we don't want to iterate through it
+	    // in the first layer; only in the hidden layer
+	    hiddenOutput = new Double[hiddenNumWithBias];
+	    hiddenError = new Double[hiddenNumWithBias];
+	    // TODO: SHOULD HIDDENNUM BE PASED AS A PARAMETER HERE??
 	    hiddenWeight = new Vector<Double[]>();
 
-	    outputWeight = new Double[hiddenNum];
+	    outputWeight = new Double[hiddenNumWithBias];
 
 	    scanny.nextLine();
  
 	    // read in the lines for each hidden node weight array
+	    // bias not included in hiddenWeights array
 	    for (int i = 0; i < hiddenNum; i++) {
 		String[] hiddenWeightLine = scanny.nextLine().split(",");
 		Double[] hiddenWeightArray = new Double[hiddenWeightLine.length];
@@ -109,10 +116,10 @@ public class GoTree implements GoTreeInterface {
 	    scanny.nextLine();
 
 	    // read output weight array into outputWeightArray;
-	    outputWeight = new Double[hiddenNum];
 	    String[] outputWeightLine = scanny.nextLine().split(",");
 
-	    for (int i = 0; i < hiddenNum; i++) {
+	    // outputWeight includes weight from bias term in hidden layer to output
+	    for (int i = 0; i < hiddenNumWithBias; i++) {
 		outputWeight[i] = Double.parseDouble(outputWeightLine[i]);
 	    }
 	    // done
@@ -128,18 +135,22 @@ public class GoTree implements GoTreeInterface {
 	//store input values
 	inputNum = inputIn;
 	hiddenNum = hiddenIn;
+	hiddenNumWithBias = hiddenNum + 1;
 
 	mew = mewIn;
 
 	//initialize weight vectors for each hidden node
 	//at the same time, initialize hidden ouput arrays
 	hiddenWeight = new Vector<Double[]>(hiddenNum);
-	hiddenOutput = new Double[hiddenNum];
-	hiddenError = new Double[hiddenNum];
+
+	// Adding bias term for hidden layer
+	hiddenOutput = new Double[hiddenNumWithBias];
+	hiddenError = new Double[hiddenNumWithBias];
 
 	Random rando = new Random();
 
-	outputWeight = new Double[hiddenNum];
+	// Adding bias term for hidden layer
+	outputWeight = new Double[hiddenNumWithBias];
 
 	for(int i = 0; i < hiddenNum; i++){
 
@@ -156,7 +167,11 @@ public class GoTree implements GoTreeInterface {
 	    // initialize output weight entry for hidden node i to random number
 	    outputWeight[i] = rando.nextDouble() - 0.5;
 	}
-
+	
+	// Adding extra bias term to outputWeight
+	int bias_index = hiddenNumWithBias - 1;
+	outputWeight[bias_index] = rando.nextDouble() - 0.5;
+	
 	// initialization is complete
     }
 
@@ -185,7 +200,7 @@ public class GoTree implements GoTreeInterface {
 
     private void propagateForward (int[] input) {
 	
-	//for each hidden node:
+	//for each hidden node (excluding bias node):
 	for (int i = 0; i < hiddenNum; i++) {
 
 	    //operating on a single hidden node
@@ -194,6 +209,7 @@ public class GoTree implements GoTreeInterface {
 	    //sum over inputs x_i * w_i for the input layer
 	    double net = 0.0;
 
+	    // input.length includes input bias term
 	    for (int p = 0; p < input.length; p++) {
 		net += ((double) input[p]) * tempWeight[p];
 	    }
@@ -203,13 +219,20 @@ public class GoTree implements GoTreeInterface {
 
 	    //store net into hidden node's output array
 	    hiddenOutput[i] = net;
-	}	
+	}	 
+
+	// Adding bias for hidden layer
+	// hiddenOutput of length hiddenNum+1\
+	int bias_index = hiddenNumWithBias - 1;
+	hiddenOutput[bias_index] = 1.0;
 
 	//propagate hidden output to single output node
 	//sum over inputs x_i*w_i
 	double net = 0.0;
 
-	for(int p = 0; p < hiddenNum; p++){
+	// Add 1 because of bias term
+	// hiddenOutput and outputWeight are of length hiddenNum+1
+	for(int p = 0; p < hiddenNumWithBias; p++){
 	    net += hiddenOutput[p] * outputWeight[p];
 	}
 
@@ -228,7 +251,8 @@ public class GoTree implements GoTreeInterface {
 	// error_i = output_i (1 - output_i) * sum_over_outputs_k [output_weight_ik * output_error_k]
 	// but there is only one output node, so k = 1
 
-	for(int i = 0; i < hiddenNum; i++){
+	// hiddenError, hiddenOutput, and outputWeight are of length hiddenNum+1
+	for(int i = 0; i < hiddenNumWithBias; i++){
 	    hiddenError[i] = hiddenOutput[i] * (1 - hiddenOutput[i]) * outputWeight[i] * outputError;
 	}
     }
@@ -239,11 +263,13 @@ public class GoTree implements GoTreeInterface {
 	Double[] tempArray;
 
 	//update hidden node weights
+	//DO NOT need bias term from hidden layer here
 	for(int i = 0; i < hiddenNum; i++){
 	    //operating on a single hidden node, and its edge weights
 	    tempArray = hiddenWeight.get(i);
 	    error = hiddenError[i];
 
+	    // Bias is contained in input string
 	    for(int p = 0; p < inputNum; p++){
 		//want to store into w_pi = w_pi + mew * error_i * input_p
 		tempArray[p] += mew * error * ((double) input[p]);
@@ -253,7 +279,8 @@ public class GoTree implements GoTreeInterface {
 	//update output node weights
 	//operating on a single output node, and its edge weights
 
-	for(int p = 0; p < hiddenNum; p++){
+	// hiddenError, hiddenOutput, and outputWeight are of length hiddenNum+1
+	for(int p = 0; p < hiddenNumWithBias; p++){
 	    outputWeight[p] += mew * hiddenError[p] * hiddenOutput[p];
 	}
     }
@@ -302,7 +329,8 @@ public class GoTree implements GoTreeInterface {
 	
 	    writer.print(outputWeight[0]);
 
-	    for (int i = 1; i < hiddenNum; i++) {
+	    // outputWeight is of size hiddenNum+1
+	    for (int i = 1; i < hiddenNumWithBias; i++) {
 		writer.print("," + outputWeight[i]);
 	    }
 	    writer.print("\n");
@@ -319,10 +347,10 @@ public class GoTree implements GoTreeInterface {
 
     public static void main(String[] args) {
 	/*GoTree myGo = new GoTree();
-	myGo.buildTree(new File("hi.txt"));
-	System.out.println("hi");
+	  myGo.buildTree(new File("hi.txt"));
+	  System.out.println("hi");
 	
-	myGo.toFile(new File("hi2.txt"));
+	  myGo.toFile(new File("hi2.txt"));
 	*/
     }
 }
