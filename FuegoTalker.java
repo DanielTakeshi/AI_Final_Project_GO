@@ -22,8 +22,8 @@ public class FuegoTalker {
 	System.out.println("boardsize 9");
 	for (String move : movesList) {
 	    // for each move, we map to the move we output for fuego
-	    System.out.println(myTranscriptor.genFuegoMove(move));
 	    System.out.println("showboard");
+	    System.out.println(myTranscriptor.genFuegoMove(move));
 	} 		    
     }
 
@@ -55,6 +55,50 @@ public class FuegoTalker {
 	    }
 	}
     }
+
+	public static void makeTranscript(File sgfPath, File boardmoves ) {
+		Transcripter tranny = new Transcripter();
+	    File[] sgfFileArray = sgfPath.listFiles();
+		ArrayList<String> movesList = new ArrayList<String>();
+		String current_board;
+		String transcript_file = "output/transcript.txt";
+
+		try {
+		for (int i = 0; i < sgfFileArray.length; i++) {
+		    // test to make sure that the file is actually there
+	  	 	File curFile = sgfFileArray[i];
+            if (curFile.isFile() && curFile.canRead()) {
+			    // initialize fuego to a 9x9 board
+				movesList.addAll(tranny.readMoves(curFile));		
+	        }
+		}
+		System.out.println("Number of moves is: " + movesList.size() );
+		convertBoardState( boardmoves, transcript_file, movesList );
+		} catch (IOException e) {
+		    e.printStackTrace(System.out);
+		}
+	}
+
+	private static void convertBoardState( File boardmoves, String target, ArrayList<String> movesList ) throws IOException {
+		Scanner scanny = new Scanner(boardmoves);
+		Transcripter tranny = new Transcripter();
+		String current_board;
+		String current_line; 
+		boolean found_board = false;
+		int index = 0;
+
+		while (scanny.hasNextLine()) {
+			current_board = "";
+			for (int i=1; i<=9; i++) {
+				assert scanny.hasNextLine();
+				current_line = scanny.nextLine();
+				current_board += current_line + "\n"; 
+			}
+			String tranny_board = tranny.processShowBoard(current_board);
+			String transcript_turn = tranny_board + "\n" + movesList.get(index++);
+			tranny.writeToFile( target, transcript_turn );
+		}
+	}
     
     /*
      *
@@ -85,7 +129,8 @@ public class FuegoTalker {
 public static void main(String[] args) throws IOException {		
     // read in a directory
     File trainDir = new File(args[0]);
-    push(trainDir);
+	File board_stuff = new File(args[1]);
+    makeTranscript(trainDir, board_stuff);
 }
 }
 

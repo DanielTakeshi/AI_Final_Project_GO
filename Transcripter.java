@@ -125,7 +125,7 @@ public class Transcripter {
      * returned by readShowBoard to the running game state string.
      */
 
-    public String readShowBoard (String output) throws IOException {
+    public String processShowBoard (String output) throws IOException {
 	Scanner reader = new Scanner(output);
 	String data = "";
 	String[] contents;
@@ -234,8 +234,6 @@ public class Transcripter {
 	printer.printf( "%s" + "%n" , content);
 	printer.flush();
 	printer.close();
-	writer.flush();
-	writer.close();
     }
 
     /*
