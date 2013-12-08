@@ -16,7 +16,7 @@ import java.util.*;
 public class Trainer {
 
     /*
-     * + Each string in training_games has transcript for one game.
+     * + transcript holds all transcripts for all games in transcript.txt
      * Transcript for one game is a board state followed by the move. Ex:
      *
      * "E, E, B, E, W, ..." (81 letters)
@@ -27,28 +27,27 @@ public class Trainer {
      * + genny is the input generator, i.e., gives us the feature vector
      * + KamiNet represents the GoTree, i.e., the ANN.
      */
-    private String[] training_games;
+    private File transcript;
     private InputGenerator genny;
     private GoTree KamiNet;
 
 
     // Constructor; makes a new GoTree and gets training games.
-    public Trainer(String tree_file, String file_names) {
-	KamiNet = new GoTree();
-	KamiNet.buildTree(new File(tree_file));
-	training_games = file_names.split(" ");
-	genny = new InputGenerator();
+    public Trainer(String tree_file, String transcript_file) {
+		KamiNet = new GoTree();
+		KamiNet.buildTree(new File(tree_file));
+		transcript = new File(transcript_file);
+		genny = new InputGenerator();
     }
 
 
-    // We have a list of games; we train once with each game in order,
+    // We have a transcript from the constructor; 
+	// we train once with each game in order,
     // and then repeat the process until we've done it num_repeat times.
     public void runTraining(int num_repeat) throws Exception {
-	for (int rep=0; rep<num_repeat; ++rep) {
-	    for (int i=0; i < training_games.length; ++i) {
-		runGame(training_games[i]);
-	    }
-	}
+		for (int rep=0; rep<num_repeat; rep++) {
+			runGame();
+		}
     }
 
 
@@ -62,7 +61,7 @@ public class Trainer {
      * possible empty spots that does not match the pro's move.
      *
      */
-    private void runGame(String transcript) throws Exception {
+    private void runGame() throws Exception {
 	String[] transcript_list = transcript.split("\n"); 
 	int num_moves = transcript_list.length / 2;
 
@@ -74,11 +73,12 @@ public class Trainer {
 
 	    // We want to treat each board position with respect to one color
 	    if ( current_color.equals("W") ) {
-		board_string = swapColors(board_string);
+			board_string = swapColors(board_string);
 	    }
 
 	    // Makes it easier to iterate through board positions (since it's in a 9x9 array)
 	    String[][] board = getBoardArray(board_string);
+
 	    // Now pick the random move (can't be pro move)
 	    String random_move = chooseRandomMove(board, pro_move);
 	    int[] pro_move_int = {Integer.parseInt(pro_move.substring(0,1)), 
@@ -88,7 +88,7 @@ public class Trainer {
 
 	    // Train with pro move then random move
 	    int[] input = genny.getInput(board, pro_move_int, i);
-	    KamiNet.train(input, 1);
+		KamiNet.train(input, 1);
 	    input = genny.getInput(board, random_move_int, i);
 	    KamiNet.train(input, 0);
 	}
@@ -96,13 +96,14 @@ public class Trainer {
 
 
     // Returns a random move so we can train on it, as long as it's empty and not pro move
-    public static String chooseRandomMove(String[][] board, String pro_move) {
+	// TODO: Double check this, it should be fine, but ya never know...
+    public String chooseRandomMove(String[][] board, String pro_move) {
 	String move_string;
 	int x, y;
 	Random rand = new Random();
 	do {
-	    x = rand.nextInt(8);
-	    y = rand.nextInt(8);
+	    x = rand.nextInt(9);
+	    y = rand.nextInt(9);
 	    move_string = String.valueOf(x) + String.valueOf(y);
 	} while ( !board[x][y].equals("E") || move_string.equals(pro_move));
 	return move_string;
@@ -121,7 +122,7 @@ public class Trainer {
 
     // Converts the string of board states from the Transcript file to a 9x9 array.
     // Could be useful in the training program as opposed to using it here...
-    private static String[][] getBoardArray(String board_string) {
+    private String[][] getBoardArray(String board_string) {
 	String[][] board = new String[9][9];
 	String[] positions = board_string.split(",");
 	int i = 0;

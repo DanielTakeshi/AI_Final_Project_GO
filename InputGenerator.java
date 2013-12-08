@@ -14,8 +14,7 @@ import java.util.*;
 
 public class InputGenerator {
 
-    public static final int[][] locations = { {0,-2}, {-1,-1}, {0,-1}, {1,-1}, {-2,0}, {-1,0}, 
-					      {1,0}, {2,0}, {-1,1}, {0,1}, {1,1}, {0,2},};
+    public static final int[][] locations = { {0,-2}, {-1,-1}, {0,-1}, {1,-1}, {-2,0}, {-1,0},{1,0}, {2,0}, {-1,1}, {0,1}, {1,1}, {0,2},};
 
     public InputGenerator() {
     }
@@ -60,10 +59,10 @@ public class InputGenerator {
 	int[] input = new int[42];
 	int x;
 	int y;
-	System.out.println(positions.length);
 	for (int j=0; j<positions.length; ++j) {
-	    x = positions[j][0];
-	    y = positions[j][1];
+		// This x,y mapping matches how the board array sees positions!
+		x = positions[j][1];	    
+		y = positions[j][0];
 	    if ( x < 0 || x > 8 || y < 0 || y > 8 ) {
 		//do nothing!
 	    }
@@ -79,17 +78,6 @@ public class InputGenerator {
 	    }
 	}
 	return input;
-    }
-
-    // Using this to test the methods, should be deleted later on.
-    public static void main(String[] args) {
-	String board_string = "E,B,B,E,E,E,E,E,E,B,B,E,E,E,E,E,E,E,B,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,W,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E";
-	String[][] board = getBoardArray(board_string);
-	int[] move = {7,4};
-	int[] input = getInput(board,move,53);
-	for (int i=0; i<input.length; ++i) {
-	    System.out.print(input[i] + ",");
-	}
     }
 
     // Converts the string of board states from the Transcript file to a 9x9 array.
