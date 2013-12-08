@@ -54,11 +54,13 @@ public class KamiGo {
 	    System.exit(1);
 	}
 
-	int num_iterations;
+	String transcript_file = "";
+	int num_iterations = 0;
 	boolean do_we_train = args[0].equals("y");
 
 	if (do_we_train) {
 	    try {
+		transcript_file = args[1];
 		num_iterations = Integer.parseInt(args[2]);
 	    } catch (NumberFormatException e) {
 		System.err.println("Argument " + args[2] +  " must be an integer");
@@ -67,12 +69,18 @@ public class KamiGo {
 	}
 		
 	// STEP 1: BACKPROPAGATION
-	if (do_we_train) {
-	    System.out.println("Call backpropagation code.");
-	} else {
-	    System.out.println("Find our old neural network (assuming we have it...)");
+	try {
+	    if (do_we_train) {
+		Trainer miyagi = new Trainer(transcript_file);
+		miyagi.runTraining(num_iterations);
+	    } else {
+		System.out.println("Find our old neural network (assuming we have it...)");
+	    }
+	} catch (Exception e) {
+	    System.out.println(e);
 	}
 
+	/*
 	// STEP 2: PLAY THE GAME!
 	try {
 	    System.out.println("Now playing the game ...\n");
@@ -81,6 +89,7 @@ public class KamiGo {
 	catch (IOException e) {
 	    System.out.println(e);
 	}
+	*/
     }
 
     /*

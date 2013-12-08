@@ -31,23 +31,104 @@ public class Trainer {
     private InputGenerator genny;
     private GoTree KamiNet;
 
+    private final int inputNum = 43;
+    private final int hiddenNum = 10;
+    private final double mew = .1;
 
+    private String[] transcript_list;
+    private ArrayList<String[][]> boards;
+    private ArrayList<int[]> pro_inputs;
+    private int num_moves;
+    
     // Constructor; makes a new GoTree and gets training games.
-    public Trainer(String tree_file, String transcript_file) {
-		KamiNet = new GoTree();
-		KamiNet.buildTree(new File(tree_file));
-		transcript = new File(transcript_file);
-		genny = new InputGenerator();
+    public Trainer(String transcript_file) {
+	KamiNet = new GoTree();
+	KamiNet.buildTree(inputNum, hiddenNum, mew);
+	transcript = new File(transcript_file);
+	genny = new InputGenerator();
+	ReadFile reader = new ReadFile();
+
+	boards = new ArrayList<String[][]>();
+	// Used to store state for a new game
+	String[][] empty_board;
+	pro_inputs = new ArrayList<int[]>();
+
+	System.out.println("Loading Transcript...");
+
+	try {
+	    transcript_list = reader.openFile(transcript).split("\n");
+	} catch (IOException e) {
+	    System.out.println(e);
+	}
+
+	System.out.println("Prepping Game State...");
+
+	num_moves = transcript_list.length / 2;
+	int game_counter = 0;
+	int move_counter = 0;
+
+	for (int i=0; i<num_moves; i++) {
+
+	    String board_string = transcript_list[2*i];
+	    String move = transcript_list[2*i+1];
+	    String current_color = move.substring(0,1);
+	    String pro_move = move.substring(1,3);
+	    move_counter++;
+
+	    // We want to treat each board position with respect to one color
+	    if ( current_color.equals("W") ) {
+		board_string = swapColors(board_string);
+	    }
+
+	    // Makes it easier to iterate through board positions (since it's in a 9x9 array)
+	    String[][] board = getBoardArray(board_string);
+	    boards.add(board);
+	    if ( isEmpty(board) ) {
+		game_counter++;
+		move_counter = 0;
+	    }
+
+	    // TODO: Make the game move counter
+	    int[] pro_move_int = {Integer.parseInt(pro_move.substring(0,1)), 
+				  Integer.parseInt(pro_move.substring(1,2))};
+
+	    int[] input = genny.getInput(board, pro_move_int, move_counter);
+	    pro_inputs.add(input);
+	}
+	System.out.println("Done. " + game_counter + " games found");
+	System.out.println("Beginning Training ...");
     }
+
+    private boolean isEmpty(String[][] board) {
+	for (int x = 0; x < 9; x++) {
+	    for (int y = 0; y < 9; y++) {
+		if ( !board[x][y].equals("E") ) {
+		    return false;
+		}
+	    }
+	}
+	return true;
+    }
+    
 
 
     // We have a transcript from the constructor; 
 	// we train once with each game in order,
     // and then repeat the process until we've done it num_repeat times.
     public void runTraining(int num_repeat) throws Exception {
-		for (int rep=0; rep<num_repeat; rep++) {
-			runGame();
-		}
+	int counter = 0;
+	int percent = 0;
+	int five_percent = (int)(num_repeat / 20);
+	for (int rep=0; rep<num_repeat; rep++) {
+	    if (counter >= five_percent) {
+		percent += 5;
+		System.out.println(percent + "% Complete.");
+		counter = 0;
+	    }
+	    runGame();
+	    counter++;
+	}
+	KamiNet.toFile(new File("KamiNetv1.txt"));
     }
 
 
@@ -62,37 +143,28 @@ public class Trainer {
      *
      */
     private void runGame() throws Exception {
-	String[] transcript_list = transcript.split("\n"); 
 	int num_moves = transcript_list.length / 2;
 
-	for (int i=0; i < num_moves; ++i) {
-	    String board_string = transcript_list[2*i];
+	for (int i=0; i<num_moves; i++) {
+
+	    String[][] board = boards.get(i);
 	    String move = transcript_list[2*i+1];
 	    String current_color = move.substring(0,1);
 	    String pro_move = move.substring(1,3);
 
-	    // We want to treat each board position with respect to one color
-	    if ( current_color.equals("W") ) {
-			board_string = swapColors(board_string);
-	    }
-
-	    // Makes it easier to iterate through board positions (since it's in a 9x9 array)
-	    String[][] board = getBoardArray(board_string);
-
 	    // Now pick the random move (can't be pro move)
 	    String random_move = chooseRandomMove(board, pro_move);
-	    int[] pro_move_int = {Integer.parseInt(pro_move.substring(0,1)), 
-				  Integer.parseInt(pro_move.substring(1,2))};
 	    int[] random_move_int = {Integer.parseInt(random_move.substring(0,1)), 
 				     Integer.parseInt(random_move.substring(1,2))};
 
 	    // Train with pro move then random move
-	    int[] input = genny.getInput(board, pro_move_int, i);
-		KamiNet.train(input, 1);
+	    int[] input = pro_inputs.get(i);
+	    KamiNet.train(input, 1);
 	    input = genny.getInput(board, random_move_int, i);
 	    KamiNet.train(input, 0);
 	}
     }
+
 
 
     // Returns a random move so we can train on it, as long as it's empty and not pro move

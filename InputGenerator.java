@@ -26,6 +26,8 @@ public class InputGenerator {
     public static int[] getInput(String[][] board, int[] move, int move_count) {
 	int[][] position_array = getPositionArray(move);
 	int[] input = processPoint(board, position_array);
+	// bias term is always 1
+	input[42] = 1;
 	// Early Game		
 	if (move_count < 10) { input[36] = 1; }
 	// Mid Game
@@ -58,8 +60,6 @@ public class InputGenerator {
     private static int[] processPoint(String[][] board, int[][] positions) {	
 	// 42 inputs + 1 bias term
 	int[] input = new int[43];
-	// bias term is always 1
-	input[42] = 1;
 	int x;
 	int y;
 	for (int j=0; j<positions.length; ++j) {
