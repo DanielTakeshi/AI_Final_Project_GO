@@ -130,7 +130,7 @@ public class GoTree implements GoTreeInterface {
 
 	    // outputWeight includes weight from bias term in hidden layer to output
 	    for (int i = 0; i < hiddenNumWithBias; i++) {
-		outputWeight[i] = Double.parseDouble(outputWeightLine[i]);
+			outputWeight[i] = Double.parseDouble(outputWeightLine[i]);
 	    }
 	    // done
 	} catch (IOException e) {
@@ -152,7 +152,7 @@ public class GoTree implements GoTreeInterface {
 
 	//initialize weight vectors for each hidden node
 	//at the same time, initialize hidden ouput arrays
-	hiddenWeight = new Vector<Double[]>(hiddenNum);
+	hiddenWeight = new Vector<Double[]>();
 
 	// Adding bias term for hidden layer
 	hiddenOutput = new Double[hiddenNumWithBias];

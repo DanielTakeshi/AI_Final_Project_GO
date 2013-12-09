@@ -35,7 +35,7 @@ def run_game(backpropFileName):
     fuegoProc = subprocess.Popen(fuegoCmd, stdin=PIPE, stdout=PIPE, bufsize=1, stderr=STDOUT)
     
     # open up our game
-    kamiCmd = ['java', 'KamiGo', '-d', backpropFileName]
+    kamiCmd = ['java', '-ea', 'KamiGo', '-t', backpropFileName]
     kamiProc = subprocess.Popen(kamiCmd, stdin=PIPE, stdout=PIPE, bufsize=1, stderr=STDOUT)    
 
     # the fuegoToKamiQueue holds the fuego output -- need to push over to kami
@@ -58,12 +58,12 @@ def run_game(backpropFileName):
     queueToKamiWorker.daemon = True
 
     # build worker to enqueue the user's input to kami
-    userToQueueWorker = Thread(target=enqueue_output, args=(sys.stdin, fuegoToKamiQueue, "User -> Kami in queue"))
+    userToQueueWorker = Thread(target=enqueue_output, args=(sys.stdin, kamiToFuegoQueue, "User -> Kami in queue"))
     
     # start up workers
     kamiToQueueWorker.start()
     queueToFuegoWorker.start()
-    fuegoToKamiQueue.start()
+    fuegoToQueueWorker.start() # Why is this here?
     queueToKamiWorker.start()
     userToQueueWorker.start()
 
@@ -79,5 +79,3 @@ if (argslength != 2):
     print 'Need to supply a neural net source file as arg'
 else:
     run_game(sys.argv[1])
-
-
