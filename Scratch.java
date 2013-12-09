@@ -6,20 +6,30 @@ public class Scratch {
 	int numRead = 0;
 	try {
 	    BufferedReader readIn = new BufferedReader(new InputStreamReader(System.in));
-	    while (true) {
+	    boolean loop_forever = true;
+	    while (loop_forever) {
 		if (readIn.ready()) {
+		    
 		    Scanner scanny = new Scanner(readIn);
-		    while (scanny.hasNextLine()) {
+		    while(scanny.hasNextLine()) {
 			String inString = scanny.nextLine();
-			System.out.println(inString);
+			System.out.println(inString );
+			System.out.print((char) 4);
+			loop_forever = false;
+			break;
 		    }
 		} else {
-		    System.out.println("waiting");
 		    Thread.sleep(1000);
 		}
+	    }
+	    
+	    while (true) {
+		System.out.println("output");
+		Thread.sleep(10000);
 	    }
 	} catch (Exception e) {
 	    System.out.println("execption");
 	}
+	
     }
 }
