@@ -9,7 +9,7 @@ def enqueue_output(outpipe, queue, directionstring):
     # outpipe.readline blocks on the readline until the pipe is closed.
 
     for line in iter(outpipe.readline, b''):
-        #print directionstring, " wrote ", line
+        print directionstring, " wrote ", line
         queue.put(line)
 
     # no more input from stdout -- logical end of the pipe reached
@@ -26,7 +26,7 @@ def dequeue_output(inpipe, queue, directionstring):
             # nothing on the queue -- wait until next time
             pass
         else: # got line
-            #print directionstring, " wrote ", line 
+            print directionstring, " wrote ", line 
             inpipe.write(line + "\n")
             
 def run_game(backpropFileName):
@@ -44,21 +44,21 @@ def run_game(backpropFileName):
     kamiToFuegoQueue = Queue()
     
     # build workers to enqueue and dequeue kami's output
-    kamiToQueueWorker = Thread(target=enqueue_output, args=(kamiProc.stdout, kamiToFuegoQueue, "Kami -> queue"))
+    kamiToQueueWorker = Thread(target=enqueue_output, args=(kamiProc.stdout, kamiToFuegoQueue, "Kami -> Feugo in queue"))
     kamiToQueueWorker.daemon = True
 
-    queueToFuegoWorker = Thread(target=dequeue_output, args=(fuegoProc.stdin, kamiToFuegoQueue, "queue -> Fuego"))
+    queueToFuegoWorker = Thread(target=dequeue_output, args=(fuegoProc.stdin, kamiToFuegoQueue, "Fuego in queue -> Fuego"))
     queueToFuegoWorker.daemon = True
 
     # build workers to enqueue and dequeue fuego's output
-    fuegoToQueueWorker = Thread(target=enqueue_output, args=(fuegoProc.stdout, fuegoToKamiQueue, "Fuego -> queue"))
+    fuegoToQueueWorker = Thread(target=enqueue_output, args=(fuegoProc.stdout, fuegoToKamiQueue, "Fuego -> Kami in queue"))
     fuegoToQueueWorker.daemon = True
 
-    queueToKamiWorker = Thread(target=dequeue_output, args=(kamiProc.stdin, fuegoToKamiQueue, "queue -> Kami"))
+    queueToKamiWorker = Thread(target=dequeue_output, args=(kamiProc.stdin, fuegoToKamiQueue, "Kami in queue -> Kami"))
     queueToKamiWorker.daemon = True
 
     # build worker to enqueue the user's input to kami
-    userToQueueWorker = Thread(target=enqueue_output, args=(sys.stdin, fuegoToKamiQueue, "User -> queue"))
+    userToQueueWorker = Thread(target=enqueue_output, args=(sys.stdin, fuegoToKamiQueue, "User -> Kami in queue"))
     
     # start up workers
     kamiToQueueWorker.start()
