@@ -125,10 +125,13 @@ public class Trainer {
 		System.out.println(percent + "% Complete.");
 		counter = 0;
 	    }
+	    if ( rep % 5000 == 0 ) {
+		KamiNet.toFile(new File("KamiNetv" + (int)(rep/5000) + ".txt"));
+	    }
 	    runGame();
 	    counter++;
 	}
-	KamiNet.toFile(new File("KamiNetv1.txt"));
+	KamiNet.toFile(new File("KamiNetFinal.txt"));
     }
 
 
