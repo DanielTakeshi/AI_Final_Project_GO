@@ -29,7 +29,7 @@
 
    COMMAND LINE INPUTS:
 
-   $ java KamiGo -d <data> <iterations> -t <backprop_input_file> -
+   $ java KamiGo (-d <data> <iterations> | -t <backprop_input_file>)
 
    1. <data> is a text file that has the list of games in a way our ANN can read it
    3. <iterations> is how many times we run backpropagation (stopping criteria). OPTIONAL parameter
@@ -47,49 +47,60 @@ import java.util.*;
 public class KamiGo {
 
     public static void main(String[] args) {
-
-	// STEP 0: Checks if args.length = 1 or 3; if train=y, we NEED three arguments.
-	if ((args.length != 1 && args.length != 3) || (args[0].equals("y") && args.length != 3)) {
-	    System.err.println("USAGE: java KamiGo <train> <data> <iterations> (last 2 needed if train = \"y\")");
+	
+	// we are training either from a new neural net from a file, or playing a game using an existing neural net
+	if ((args.length >= 2 && args.length <= 4) || ((!args[0].equals("-t")) && (!args[0].equals("-d")))) {
+	    System.err.println("USAGE: java KamiGo (-d <data> <iterations> [<backprop_input_file>] | -t <backprop_input_file");;
 	    System.exit(1);
 	}
 
 	String transcript_file = "";
+	String backprop_file = "";
 	int num_iterations = 0;
-	boolean do_we_train = args[0].equals("y");
+	
+	boolean do_we_train = args[0].equals("-d");
+	boolean train_from_file = false;
 
 	if (do_we_train) {
 	    try {
 		transcript_file = args[1];
 		num_iterations = Integer.parseInt(args[2]);
+
+		if (args.length == 4) {
+		    backprop_file = args[3];
+		    train_from_file = true;
+		}
+
 	    } catch (NumberFormatException e) {
 		System.err.println("Argument " + args[2] +  " must be an integer");
 		System.exit(1);
 	    }
+	} else {
+	    // not training -- initialize backpropr file to second arg
+	    backprop_file = args[1];
 	}
 		
 	// STEP 1: BACKPROPAGATION
 	try {
 	    if (do_we_train) {
-		Trainer miyagi = new Trainer(transcript_file);
+		Trainer miyagi;
+		if (train_from_file) {
+		    miyagi = new Trainer (trainscript_file, backprop_file);
+		} else {
+		    miyagi = new Trainer (transcript_file);
+		}
+
 		miyagi.runTraining(num_iterations);
 	    } else {
+		/*
+		System.out.println("Now playing the game ...\n");
+		playGame();
 		System.out.println("Find our old neural network (assuming we have it...)");
+		*/
 	    }
 	} catch (Exception e) {
 	    System.out.println(e);
 	}
-
-	/*
-	// STEP 2: PLAY THE GAME!
-	try {
-	    System.out.println("Now playing the game ...\n");
-	    playGame();
-	}
-	catch (IOException e) {
-	    System.out.println(e);
-	}
-	*/
     }
 
     /*
@@ -97,6 +108,7 @@ public class KamiGo {
      * play a game.
      *
      */
+
     public static void playGame() throws IOException {
 	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 	String user_input = reader.readLine();

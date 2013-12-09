@@ -37,6 +37,9 @@ public class GoTree implements GoTreeInterface {
     // unique id for the tree
     long myID;
 
+    // training counter for the goTree
+    long trainingNum;
+
     // input, hidden, and output num are the node counts for each layer
     int inputNum;
     int hiddenNum;
@@ -84,8 +87,15 @@ public class GoTree implements GoTreeInterface {
 	    inputNum = Integer.parseInt(firstLine[0]);
 	    hiddenNum = Integer.parseInt(firstLine[1]);
 	    hiddenNumWithBias = hiddenNum + 1;
+
 	    mew = Double.parseDouble(firstLine[2]);
 	    myID = Long.parseLong(firstLine[3]);
+
+	    if (firstLine.length > 4) {
+		trainingNum = Long.parseLong(firstLine[4]);
+	    } else {
+		trainingNum = 0;
+	    }
 
 	    // initialize value and error structs
 	    // +1 indicates bias term, we don't want to iterate through it
@@ -131,6 +141,7 @@ public class GoTree implements GoTreeInterface {
     public void buildTree (int inputIn, int hiddenIn, double mewIn) {
 	//initialize new id for this tree from sys.nanoTime
 	myID = System.nanoTime();
+	trainingNum = 0;
 
 	//store input values
 	inputNum = inputIn;
@@ -196,6 +207,7 @@ public class GoTree implements GoTreeInterface {
 
 	//update tree
 	this.update(input);
+	trainingNum++;
     }
 
     private void propagateForward (int[] input) {
@@ -292,14 +304,14 @@ public class GoTree implements GoTreeInterface {
 
     public void toFile () {
 	// called without a specified output -- writes out to an myID.System.nanoTime.txt file:
-	this.toFile(new File("Tree" + myID + "." + System.nanoTime() + ".txt"));
+	this.toFile(new File("KamiNet" + myID + "." + trainingNum + ".txt"));
     }
 
     public void toFile (File outFile) {
 	// write the FFTree out to file
 	try {
 	    PrintWriter writer = new PrintWriter(outFile);
-	    writer.println(inputNum + "," + hiddenNum + "," + mew + "," + myID);
+	    writer.println(inputNum + "," + hiddenNum + "," + mew + "," + myID + "," + trainingNum);
 
 	    writer.println("%");
 	
@@ -345,12 +357,14 @@ public class GoTree implements GoTreeInterface {
 	mew = mewIn;
     }
 
+    public long getID() {
+	return myID;
+    }
+
+    public long getTrainingNum () {
+	return trainingNum;
+    }
+
     public static void main(String[] args) {
-	/*GoTree myGo = new GoTree();
-	  myGo.buildTree(new File("hi.txt"));
-	  System.out.println("hi");
-	
-	  myGo.toFile(new File("hi2.txt"));
-	*/
     }
 }

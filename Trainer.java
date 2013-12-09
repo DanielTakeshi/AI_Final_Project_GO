@@ -99,6 +99,70 @@ public class Trainer {
 	System.out.println("Beginning Training ...");
     }
 
+    // Constructor; makes a new GoTree and gets training games.
+    public Trainer (String transcript_file, String backprop_file) {
+	transcript = new File(transcript_file);
+	File backprop = new File(backprop_file);
+
+	KamiNet = new GoTree();
+	System.out.println("Building game tree from file");
+	KamiNet.buildTree(backprop);
+	
+	genny = new InputGenerator();
+	ReadFile reader = new ReadFile();
+
+	boards = new ArrayList<String[][]>();
+	// Used to store state for a new game
+	String[][] empty_board;
+	pro_inputs = new ArrayList<int[]>();
+
+	System.out.println("Loading Transcript...");
+
+	try {
+	    transcript_list = reader.openFile(transcript).split("\n");
+	} catch (IOException e) {
+	    System.out.println(e);
+	}
+
+	System.out.println("Prepping Game State...");
+
+	num_moves = transcript_list.length / 2;
+	int game_counter = 0;
+	int move_counter = 0;
+
+	for (int i=0; i<num_moves; i++) {
+
+	    String board_string = transcript_list[2*i];
+	    String move = transcript_list[2*i+1];
+	    String current_color = move.substring(0,1);
+	    String pro_move = move.substring(1,3);
+	    move_counter++;
+
+	    // We want to treat each board position with respect to one color
+	    if ( current_color.equals("W") ) {
+		board_string = swapColors(board_string);
+	    }
+
+	    // Makes it easier to iterate through board positions (since it's in a 9x9 array)
+	    String[][] board = getBoardArray(board_string);
+	    boards.add(board);
+	    if ( isEmpty(board) ) {
+		game_counter++;
+		move_counter = 0;
+	    }
+
+	    // TODO: Make the game move counter
+	    int[] pro_move_int = {Integer.parseInt(pro_move.substring(0,1)), 
+				  Integer.parseInt(pro_move.substring(1,2))};
+
+	    int[] input = genny.getInput(board, pro_move_int, move_counter);
+	    pro_inputs.add(input);
+	}
+	System.out.println("Done. " + game_counter + " games found");
+	System.out.println("Beginning Training ...");
+    }
+
+
     private boolean isEmpty(String[][] board) {
 	for (int x = 0; x < 9; x++) {
 	    for (int y = 0; y < 9; y++) {
@@ -110,10 +174,8 @@ public class Trainer {
 	return true;
     }
     
-
-
     // We have a transcript from the constructor; 
-	// we train once with each game in order,
+    // we train once with each game in order,
     // and then repeat the process until we've done it num_repeat times.
     public void runTraining(int num_repeat) throws Exception {
 	int counter = 0;
@@ -128,7 +190,7 @@ public class Trainer {
 	    runGame();
 	    counter++;
 	}
-	KamiNet.toFile(new File("KamiNetv1.txt"));
+	KamiNet.toFile();
     }
 
 

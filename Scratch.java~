@@ -1,0 +1,34 @@
+import java.io.*;
+import java.util.*;
+
+public class Scratch {
+    public static void main (String[] args) {
+	int numRead = 0;
+	try {
+	    BufferedReader readIn = new BufferedReader(new InputStreamReader(System.in));
+	    while (true) {
+		if (readIn.ready()) {
+		    Scanner scanny = new Scanner(readIn);
+		    while (scanny.hasNextLine()) {
+			String inString = scanny.nextLine();
+			System.out.println(inString);
+			FileWriter outFile = new FileWriter(new File("scratch_output.txt"), true);
+			outFile.write(inString + numRead + "\n");
+			numRead++;
+			outFile.flush();
+			outFile.close();
+		    }
+		} else {
+		    FileWriter outFile = new FileWriter(new File("scratch_output.txt"), true);
+		    outFile.write("sleeping" + numRead + "\n");
+		    numRead++;
+		    outFile.flush();
+		    outFile.close();
+		    Thread.sleep(100);
+		}
+	    }
+	} catch (Exception e) {
+	    System.out.println("execption");
+	}
+    }
+}
