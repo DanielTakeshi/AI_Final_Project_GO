@@ -60,6 +60,14 @@ def gen_fuego_board_state():
             fuegoProc.stdin.write(line + "\n")
             
         fuegoProc.stdin.write("showboard\n")
+
+        moves_list = [["A", "B", "C", "D", "E", "F", "G", "H", "J"], ["1", "2", "3", "4", "5", "6", "7", "8", "9"]]		
+        for x in list(itertools.product(*moves_list)):
+            move = x[0] + x[1]
+            input_string = "is_legal Black {} \n".format(move)
+            fuegoProc.stdin.write(input_string)
+        # TODO: Write the legal moves to a file
+
         fuegoProc.stdin.write("quit\n")
         fuegoProc.stdin.flush()
 
