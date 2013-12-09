@@ -43,6 +43,11 @@ public class InputGenerator {
 	return input;
     }
 
+	public static int[] getInput(String board, int[] move, int move_count) {
+		String[][] board_array = getBoardArray(board);
+		return getInput(board_array, move, move_count);
+	}
+
     // Input needs to be {x, y}
     public static int[][] getPositionArray(int[] center_point) {
 	int x = center_point[0];
