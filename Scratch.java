@@ -14,7 +14,6 @@ public class Scratch {
 		    while(scanny.hasNextLine()) {
 			String inString = scanny.nextLine();
 			System.out.println(inString );
-			System.out.print((char) 4);
 			loop_forever = false;
 			break;
 		    }
@@ -24,7 +23,6 @@ public class Scratch {
 	    }
 	    
 	    while (true) {
-		System.out.println("output");
 		Thread.sleep(10000);
 	    }
 	} catch (Exception e) {

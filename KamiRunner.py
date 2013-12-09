@@ -1,119 +1,77 @@
 #! /usr/bin/env python
 import os.path,subprocess, sys
-from subprocess import STDOUT,PIPE
+from subprocess import STDOUT,PIPE,Popen
+from threading  import Thread
+from Queue import Queue, Empty
 
-# run_game initializes the moves.txt file to contain only the boardsize 9 text -- this is always the first thing passed to fuego
-# it then loops on generating the board state for the current moves file, asking kami for its move, generating the resulting board state
-# and then asking the user for his move... generating the board state...
+def enqueue_output(outpipe, queue, directionstring):
+    # for every line coming in from the standard out, we put it in the input queue
+    # outpipe.readline blocks on the readline until the pipe is closed.
 
+    for line in iter(outpipe.readline, b''):
+        #print directionstring, " wrote ", line
+        queue.put(line)
 
-def run_game(backpropFileName):
-    # clear out moves file
-    rmMovesCmd = ['rm', 'moves.txt']
-    subprocess.check_call(rmMovesCmd, shell=True)
+    # no more input from stdout -- logical end of the pipe reached
+    outpipe.close()
 
-    # initialize moves file
-    touchMovesFile = ['touch', 'moves.txt']
-    subprocess.check_call(touchMovesFile, shell=True)
-    
-    # prepend move to set board to 9x9 to moves file
-    with open('moves.txt', 'a') as movesFile:
-        movesFile.write('boardsize 9\n')
-        
-    # call computer gen move, user gen move until done TODO: need ending condition
+def dequeue_output(inpipe, queue, directionstring):
+    # read from the queue always, and then push into the input
+
     while (True):
-        print "Generating board state for kami"
-        gen_fuego_board_state()
-        gen_kami_move(backpropFileName)
-        print "Generating board state for user"
-        gen_fuego_board_state()
-        gen_user_move()
-
-# delete the boardInput file going to fuego -- before we call, we want a clean one
-def delete_board_input():
-    rmBoardInputCmd = ['rm', 'boardInput.txt']
-    subprocess.check_call(rmBoardCommand, shell=True)
-    touchBoardFile = ['touch', 'boardInput.txt']
-    subprocess.check_call(touchBoardFile, shell=True)
-
-# delete the board file going to kami
-def delete_kami_input():
-    rmBoardInputCmd = ['rm', 'kamiInput.txt']
-    subprocess.check_call(rmBoardCommand, shell=True)
-    touchBoardFile = ['touch', 'kamiInput.txt']
-    subprocess.check_call(touchBoardFile, shell=True)
-
-# gen fuego board state initializes the boardInput.txt file to be the board state that is
-# the result of executing the list of moves in the moves.txt file
-# it does this by iterating through the list of moves and passing them to fuego, and then writing
-# the result of the showboard command out to file
-def gen_fuego_board_state():
-    # clean board for incoming output
-    delete_board_input()
-
-    # generate the board state for the current moves list
-    fuegoCmd = ['feugo']    
-    with open("boardInput.txt") as out, open("moves.txt") as movesIn:
-        fuegoProc = subprocess.Popen(fuegoCmd, stdin=PIPE, stdout=out, stderr=STDOUT)
-
-        for line in movesIn:
-            fuegoProc.stdin.write(line + "\n")
+        if (inpipe.closed):
+            break
+        try:  line = queue.get(timeout=.1)
+        except Empty:
+            # nothing on the queue -- wait until next time
+            pass
+        else: # got line
+            #print directionstring, " wrote ", line 
+            inpipe.write(line + "\n")
             
-        fuegoProc.stdin.write("showboard\n")
-
-        moves_list = [["A", "B", "C", "D", "E", "F", "G", "H", "J"], ["1", "2", "3", "4", "5", "6", "7", "8", "9"]]		
-        for x in list(itertools.product(*moves_list)):
-            move = x[0] + x[1]
-            input_string = "is_legal Black {} \n".format(move)
-            fuegoProc.stdin.write(input_string)
-        # TODO: Write the legal moves to a file
-
-        fuegoProc.stdin.write("quit\n")
-        fuegoProc.stdin.flush()
-
-        fuegoProc.wait()
-
-        fuegoProc.stdin.close()
-        fuegoProc.stdout.flush()
-        fuegoProc.stdout.close()
-
-# gen_user_move prints out the board state, displays it to the user, and then asks the user for their move
-def gen_user_move():
-    # generate the board state for a user move -- computer has just gone
-    # remove the board output state file
-    # display board to the user -- get all lines starting with a digit
-    print "Filtering board state for the user"
-    output = check_output(["grep", "^[0-9]", "boardInput.txt"])
-    print output
-
-    userMove = raw_input("enter your move: ")
-    with open("moves.txt", "a") as movesFile:
-        movesFile.write(userMove + '\n')
-        
-# gen_kami_move calls the kami main, passing it the backprop init file.  it assumes that kamiGo will read 
-# the board state from kamiInput.txt, and then append the move it would like to make to moves.txt
-def gen_kami_move(backpropFileName):
-    # generate board for kami -- cleaned version int
-    print "Filtering board state for Kami Go"
-    output = check_output(["grep", "^[0-9]", "boardInput.txt"])
-
-    # prep board for writing kami board
-    delete_kami_input()
-
-    # write file out to kami
-    with open("kamiInput.txt") as outFile:
-        outFile.write(output)
-
-    print "Passing board state to Kami Go"
+def run_game(backpropFileName):
+    # run the game -- open up fuego
+    fuegoCmd = ['fuego']
+    fuegoProc = subprocess.Popen(fuegoCmd, stdin=PIPE, stdout=PIPE, bufsize=1, stderr=STDOUT)
     
-    # start up kami go and ask it for its move
+    # open up our game
     kamiCmd = ['java', 'KamiGo', '-d', backpropFileName]
-    kamiProc = subprocess.Popen(kamiCmd, stderr=STDOUT)
+    kamiProc = subprocess.Popen(kamiCmd, stdin=PIPE, stdout=PIPE, bufsize=1, stderr=STDOUT)    
+
+    # the fuegoToKamiQueue holds the fuego output -- need to push over to kami
+    fuegoToKamiQueue = Queue()
+    # the kamiToFuegoQueue holds the kami output -- need to push over fuego
+    kamiToFuegoQueue = Queue()
     
-    print "Waiting for Kami Go to make its move"
+    # build workers to enqueue and dequeue kami's output
+    kamiToQueueWorker = Thread(target=enqueue_output, args=(kamiProc.stdout, kamiToFuegoQueue, "Kami -> queue"))
+    kamiToQueueWorker.daemon = True
+
+    queueToFuegoWorker = Thread(target=dequeue_output, args=(fuegoProc.stdin, kamiToFuegoQueue, "queue -> Fuego"))
+    queueToFuegoWorker.daemon = True
+
+    # build workers to enqueue and dequeue fuego's output
+    fuegoToQueueWorker = Thread(target=enqueue_output, args=(fuegoProc.stdout, fuegoToKamiQueue, "Fuego -> queue"))
+    fuegoToQueueWorker.daemon = True
+
+    queueToKamiWorker = Thread(target=dequeue_output, args=(kamiProc.stdin, fuegoToKamiQueue, "queue -> Kami"))
+    queueToKamiWorker.daemon = True
+
+    # build worker to enqueue the user's input to kami
+    userToQueueWorker = Thread(target=enqueue_output, args=(sys.stdin, fuegoToKamiQueue, "User -> queue"))
+    
+    # start up workers
+    kamiToQueueWorker.start()
+    queueToFuegoWorker.start()
+    fuegoToKamiQueue.start()
+    queueToKamiWorker.start()
+    userToQueueWorker.start()
+
     kamiProc.wait()
-    
-    print "Kami Go finished move generation"
+ 
+    # kami is done -- quit both programs
+    kamiProc.kill()
+    fuegoProc.kill()
 
 # need as input the backprop file name
 argslength = len(sys.argv)
