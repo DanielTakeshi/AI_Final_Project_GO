@@ -79,8 +79,8 @@ public class KamiGo {
 
 	//Removes a stone from the board if there is one there
 	private String undoMove(String move) {
-		int x = Integer.parseInt(move.substring(0,1));
-		int y = Integer.parseInt(move.substring(1,2));
+		int x = Integer.parseInt( move.substring(0,1) );
+		int y = Integer.parseInt( move.substring(1,2) );
 		if ( !Kami_Board[y][x].equals("E") ) {
 			Kami_Board[y][x] = "E";
 			return "= \n";
@@ -99,6 +99,7 @@ public class KamiGo {
 			}
 			System.out.print("\n");
 		}
+		System.out.print("=\n");
 	}
 
     public static void main(String[] args) {
@@ -176,6 +177,12 @@ public class KamiGo {
 				String move = user_input[2];
 				System.out.print( kg.playMove(move, color) );
 				move_counter++;
+				kg.showboard();
+			}
+			else if (user_input[0].equals("undo")) {
+				String move = user_input[1];
+				System.out.print( kg.undoMove(move) );
+				kg.showboard();
 			}
 			else if ( user_input[0].equals("quit") || user_input[0].equals("q") )  {
 				break;
@@ -186,6 +193,7 @@ public class KamiGo {
 			else if ( user_input[0].equals("genmove") ) {
 				String color = user_input[1];
 				System.out.print(kg.genmove(color, move_counter));
+				kg.showboard();
 			} 
 		}
 	}
@@ -248,7 +256,7 @@ public class KamiGo {
 		// offset from the bottom where we expect our string to be
 		int offset = 2;
 		int vector_size = result_vector.size();
-		assert vector_size >= num_lines + offset
+		assert vector_size >= num_lines + offset;
 			
 		for (int i = 0; i < num_lines; i++) {
 			result += result_vector.get(vector_size - 1 - offset - i);
@@ -274,7 +282,7 @@ public class KamiGo {
 		for ( int x=0; x<9; x++ ) {
 			for ( int y=0; y<9; y++ ) {
 				int[] move = {x,y};
-				if ( Kami_Board[x][y].equals("E") ) {
+				if ( Kami_Board[y][x].equals("E") ) {
 					int[] input = genny.getInput(Kami_Board, move, move_count);
 					double value = KamiTree.genMove(input);
 					if ( value > best_value) {
@@ -287,7 +295,7 @@ public class KamiGo {
 		if ( !best_move.equals("") ) {
 			int boardx = best_move[0];
 			int boardy = best_move[1];
-			Kami_Board[boardx][boardy] = color;
+			Kami_Board[boardy][boardx] = color;
 			return "= KamiGo plays " + boardx + boardy + "\n";
 		}
 		else {
@@ -306,5 +314,4 @@ public class KamiGo {
 		move[1] = numTranslate[ Integer.parseInt(fuego_move.substring(1,2)) ];
 		return move;
     }
-
 }
